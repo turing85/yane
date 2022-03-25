@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.turing85</groupId>
+  <artifactId>yana.bom</artifactId>
+  <version>999-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <!-- Maven Plugins -->
+    <checkstyle.version>10.0</checkstyle.version>
+    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+    <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
+    <maven.compiler.release>17</maven.compiler.release>
+    <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+
+    <!-- Maven configuration -->
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- libraries -->
+    <!-- Annotation processors -->
+    <org.projectlombok.version>1.18.22</org.projectlombok.version>
+    <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
+
+    <!-- Test dependencies -->
+    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+    <truth.version>1.1.3</truth.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Annotation processors -->
+      <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>${org.mapstruct.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${org.projectlombok.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Test dependencies -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.google.truth</groupId>
+        <artifactId>truth</artifactId>
+        <version>${truth.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>
