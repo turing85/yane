@@ -3,13 +3,13 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>yana.parent</artifactId>
+    <artifactId>yane.parent</artifactId>
     <groupId>de.turing85</groupId>
     <version>999-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>yana.testaggregation</artifactId>
+  <artifactId>yane.testaggregation</artifactId>
 
   <packaging>pom</packaging>
 
@@ -21,7 +21,7 @@
   <dependencies>
     <dependency>
       <groupId>de.turing85</groupId>
-      <artifactId>yana.core</artifactId>
+      <artifactId>yane.core</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>de.turing85</groupId>
-  <artifactId>yana.bom</artifactId>
+  <artifactId>yane.bom</artifactId>
   <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
 

@@ -6,17 +6,17 @@
 
   <parent>
     <groupId>de.turing85</groupId>
-    <artifactId>yana.bom</artifactId>
+    <artifactId>yane.bom</artifactId>
     <version>999-SNAPSHOT</version>
-    <relativePath>./yana-bom</relativePath>
+    <relativePath>./yane-bom</relativePath>
   </parent>
 
-  <artifactId>yana.parent</artifactId>
+  <artifactId>yane.parent</artifactId>
   <packaging>pom</packaging>
 
   <modules>
-    <module>yana-bom</module>
-    <module>yana-core</module>
-    <module>yana-testaggregation</module>
+    <module>yane-bom</module>
+    <module>yane-core</module>
+    <module>yane-testaggregation</module>
   </modules>
 </project>
