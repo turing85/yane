@@ -142,5 +142,4 @@ public class Register {
   boolean isNegativeFlagSet() {
     return negativeFlag;
   }
-
 }
