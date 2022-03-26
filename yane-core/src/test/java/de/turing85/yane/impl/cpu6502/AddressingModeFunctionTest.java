@@ -16,7 +16,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should return register A when called")
+    @DisplayName("should return register A when called")
     void shouldReturnRegisterA() {
       // GIVEN
       final byte expectedValue = 0x13;
@@ -41,7 +41,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address form bus and return its value")
+    @DisplayName("should read address form bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -80,7 +80,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address form bus and return its value")
+    @DisplayName("should read address form bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -115,7 +115,7 @@ class AddressingModeFunctionTests {
     }
 
     @Test
-    @DisplayName("Should read address form bus, return its value and require an additional cycle")
+    @DisplayName("should read address form bus, return its value and require an additional cycle")
     void shouldReturnExpectedByteFromBusAndAddACycleWhenPageBoundaryIsCrossed() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -157,7 +157,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address form bus and return its value")
+    @DisplayName("should read address form bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -192,7 +192,7 @@ class AddressingModeFunctionTests {
     }
 
     @Test
-    @DisplayName("Should read address form bus, return its value and require an additional cycle")
+    @DisplayName("should read address form bus, return its value and require an additional cycle")
     void shouldReturnExpectedByteFromBusAndAddACycleWhenPageBoundaryIsCrossed() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -234,7 +234,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -262,7 +262,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read nothing")
+    @DisplayName("should read nothing")
     void shouldReturnZero() {
       // WHEN
       AddressingResult actual = IMPLIED.apply(register, null);
@@ -282,7 +282,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -322,7 +322,7 @@ class AddressingModeFunctionTests {
     }
 
     @Test
-    @DisplayName("Test bug behaviour in 6502")
+    @DisplayName("test bug behaviour in 6502")
     void shouldReturnExpectedByteFromBusBuggyBehaviour() {
       // GIVEN
       final short programCounterFirst = 1337;
@@ -366,7 +366,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -412,7 +412,7 @@ class AddressingModeFunctionTests {
     private final Register register = mock(Register.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -450,7 +450,7 @@ class AddressingModeFunctionTests {
     }
 
     @Test
-    @DisplayName("Should read address form bus, return its value and require an additional cycle")
+    @DisplayName("should read address form bus, return its value and require an additional cycle")
     void shouldReturnExpectedByteFromBusAndAddACycleWhenPageBoundaryIsCrossed() {
       // GIVEN
       final short programCounter = 1337;
@@ -495,7 +495,7 @@ class AddressingModeFunctionTests {
     private final CpuBus bus = mock(CpuBus.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -526,7 +526,7 @@ class AddressingModeFunctionTests {
     private final CpuBus bus = mock(CpuBus.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -560,7 +560,7 @@ class AddressingModeFunctionTests {
     private final CpuBus bus = mock(CpuBus.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
@@ -597,7 +597,7 @@ class AddressingModeFunctionTests {
     private final CpuBus bus = mock(CpuBus.class);
 
     @Test
-    @DisplayName("Should read address from bus and return its value")
+    @DisplayName("should read address from bus and return its value")
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final short programCounter = 1337;
