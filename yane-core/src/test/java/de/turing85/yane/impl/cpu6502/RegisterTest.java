@@ -40,8 +40,7 @@ class RegisterTest {
       final byte expectedX = 2;
       final byte expectedY = 3;
       final byte expectedStackPointer = 4;
-      final byte expectedSStackPointer = 5;
-      final short expectedProgramCounter = 6;
+      final short expectedProgramCounter = 5;
       final boolean expectedCarry = true;
       final boolean expectedZero = true;
       final boolean expectedDisableInterrupt = true;
