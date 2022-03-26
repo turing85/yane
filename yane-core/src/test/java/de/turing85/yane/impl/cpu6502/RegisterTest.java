@@ -106,6 +106,21 @@ class RegisterTest {
     }
 
     @Test
+    @DisplayName("should get and increment the program counter")
+    void shouldGetAndIncrementTheProgramCounter() {
+      // GIVEN
+      final short expectedProgramCounter = 1337;
+      final Register register = allSetRegister.programCounter(expectedProgramCounter);
+
+      // WHEN
+      final short actualProgramCounter = register.getAndIncrementProgramCounter();
+
+      // THEN
+      assertThat(actualProgramCounter).isEqualTo(expectedProgramCounter);
+      assertThat(register.programCounter()).isEqualTo(expectedProgramCounter + 1);
+    }
+
+    @Test
     @DisplayName("should return expected value when register A is mutated")
     void shouldReturnExpectedValueWhenAIsMutated() {
       // GIVEN
