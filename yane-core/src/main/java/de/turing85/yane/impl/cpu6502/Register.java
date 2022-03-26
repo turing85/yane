@@ -8,11 +8,11 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Register {
-  private byte a;
-  private byte x;
-  private byte y;
-  private byte stackPointer;
-  private short programCounter;
+  private int a;
+  private int x;
+  private int y;
+  private int stackPointer;
+  private int programCounter;
 
   @Getter(AccessLevel.NONE)
   @Setter(AccessLevel.NONE)
@@ -42,7 +42,7 @@ public class Register {
   @Setter(AccessLevel.NONE)
   private boolean negativeFlag;
 
-  short getAndIncrementProgramCounter() {
+  int getAndIncrementProgramCounter() {
     return programCounter++;
   }
 

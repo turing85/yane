@@ -17,11 +17,11 @@ class RegisterTest {
       final Register register = new Register();
 
       // THEN
-      assertThat(register.a()).isEqualTo((byte) 0);
-      assertThat(register.x()).isEqualTo((byte) 0);
-      assertThat(register.y()).isEqualTo((byte) 0);
-      assertThat(register.stackPointer()).isEqualTo((byte) 0);
-      assertThat(register.programCounter()).isEqualTo((short) 0);
+      assertThat(register.a()).isEqualTo( 0);
+      assertThat(register.x()).isEqualTo( 0);
+      assertThat(register.y()).isEqualTo( 0);
+      assertThat(register.stackPointer()).isEqualTo( 0);
+      assertThat(register.programCounter()).isEqualTo( 0);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isZeroFlagSet()).isEqualTo(false);
@@ -36,11 +36,11 @@ class RegisterTest {
     @DisplayName("Sets everything to the expected values when all-args constructor is called")
     void shouldReturnExpectedValuesWhenAllArgsConstructorIsCalled() {
       // GIVEN
-      final byte expectedA = 1;
-      final byte expectedX = 2;
-      final byte expectedY = 3;
-      final byte expectedStackPointer = 4;
-      final short expectedProgramCounter = 5;
+      final int expectedA = 1;
+      final int expectedX = 2;
+      final int expectedY = 3;
+      final int expectedStackPointer = 4;
+      final int expectedProgramCounter = 5;
       final boolean expectedCarry = true;
       final boolean expectedZero = true;
       final boolean expectedDisableInterrupt = true;
@@ -90,11 +90,11 @@ class RegisterTest {
     void setup() {
       defaultRegister = new Register();
       allSetRegister = new Register(
-          (byte) 1,
-          (byte) 2,
-          (byte) 3,
-          (byte) 4,
-          (short) 5,
+           1,
+           2,
+           3,
+           4,
+           5,
           true,
           true,
           true,
@@ -108,11 +108,11 @@ class RegisterTest {
     @DisplayName("should get and increment the program counter")
     void shouldGetAndIncrementTheProgramCounter() {
       // GIVEN
-      final short expectedProgramCounter = 1337;
+      final int expectedProgramCounter = 1337;
       final Register register = allSetRegister.programCounter(expectedProgramCounter);
 
       // WHEN
-      final short actualProgramCounter = register.getAndIncrementProgramCounter();
+      final int actualProgramCounter = register.getAndIncrementProgramCounter();
 
       // THEN
       assertThat(actualProgramCounter).isEqualTo(expectedProgramCounter);
@@ -123,7 +123,7 @@ class RegisterTest {
     @DisplayName("should return expected value when register A is mutated")
     void shouldReturnExpectedValueWhenAIsMutated() {
       // GIVEN
-      final byte expectedA = 17;
+      final int expectedA = 17;
 
       // WHEN
       Register actual = defaultRegister.a(expectedA);
@@ -137,7 +137,7 @@ class RegisterTest {
     @DisplayName("should return expected value when register X is mutated")
     void shouldReturnExpectedValueWhenXIsMutated() {
       // GIVEN
-      final byte expectedX = 17;
+      final int expectedX = 17;
 
       // WHEN
       Register actual = defaultRegister.x(expectedX);
@@ -151,7 +151,7 @@ class RegisterTest {
     @DisplayName("should return expected value when register Y is mutated")
     void shouldReturnExpectedValueWhenYIsMutated() {
       // GIVEN
-      final byte expectedY = 17;
+      final int expectedY = 17;
 
       // WHEN
       Register actual = defaultRegister.y(expectedY);
@@ -165,7 +165,7 @@ class RegisterTest {
     @DisplayName("should return expected value when the stack pointer is mutated")
     void shouldReturnExpectedValueWhenStackPointerIsMutated() {
       // GIVEN
-      final byte expectedStackPointer = 17;
+      final int expectedStackPointer = 17;
 
       // WHEN
       Register actual = defaultRegister.stackPointer(expectedStackPointer);
@@ -179,7 +179,7 @@ class RegisterTest {
     @DisplayName("should return expected value when the program counter is mutated")
     void shouldReturnExpectedValueWhenProgramCounterIsMutated() {
       // GIVEN
-      final short expectedProgramCounter = 1337;
+      final int expectedProgramCounter = 1337;
 
       // WHEN
       Register actual = defaultRegister.programCounter(expectedProgramCounter);

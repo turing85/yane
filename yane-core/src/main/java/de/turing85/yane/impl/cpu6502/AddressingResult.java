@@ -6,6 +6,6 @@ import lombok.*;
 @AllArgsConstructor
 public class AddressingResult {
   Register register;
-  byte valueRead;
+  int valueRead;
   int additionalCyclesNeeded;
 }
