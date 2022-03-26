@@ -177,7 +177,7 @@ class RegisterTest {
     }
 
     @Test
-    @DisplayName("should return expected value when the porgram counter is mutated")
+    @DisplayName("should return expected value when the program counter is mutated")
     void shouldReturnExpectedValueWhenProgramCounterIsMutated() {
       // GIVEN
       final short expectedProgramCounter = 1337;
