@@ -29,8 +29,9 @@ class AddressingModeFunctionTests {
       verify(register, times(1)).a();
       verifyNoMoreInteractions(register);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(IMPLIED_LOADED_ADDRESS);
+      assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
 
@@ -69,6 +70,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -111,6 +113,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -146,6 +149,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
   }
@@ -188,6 +192,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -223,6 +228,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
   }
@@ -252,6 +258,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(IMMEDIATE_LOADED_ADDRESS);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -271,6 +278,7 @@ class AddressingModeFunctionTests {
       verifyNoInteractions(register);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(0);
+      assertThat(actual.addresssLoaded()).isEqualTo(IMPLIED_LOADED_ADDRESS);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -317,6 +325,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -354,6 +363,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -398,6 +408,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -435,6 +446,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -480,6 +492,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -517,6 +530,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
 
@@ -553,6 +567,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -569,9 +584,11 @@ class AddressingModeFunctionTests {
       // GIVEN
       final int programCounter = 1337;
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
-
+      final int relativeAddress = 0x68;
+      when(bus.read(programCounter)).thenReturn(relativeAddress);
+      final int address = (programCounter + relativeAddress) & 0xFFFF;
       final int expectedValue = 0x13;
-      when(bus.read(programCounter)).thenReturn(expectedValue);
+      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = REL.apply(register, bus);
@@ -580,9 +597,38 @@ class AddressingModeFunctionTests {
       verify(register).getAndIncrementProgramCounter();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
+      verify(bus).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
+      assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("should read negative address from bus and return its value when")
+    void shouldReturnExpectedByteFromBusWhenRelativeAddressIsNegative() {
+      // GIVEN
+      final int programCounter = 1337;
+      when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
+      final int relativeAddress = -37;
+      when(bus.read(programCounter)).thenReturn(relativeAddress);
+      final int address = 1300;
+      final int expectedValue = 0x13;
+      when(bus.read(address)).thenReturn(expectedValue);
+
+      // WHEN
+      AddressingResult actual = REL.apply(register, bus);
+
+      // THEN
+      verify(register).getAndIncrementProgramCounter();
+      verifyNoMoreInteractions(register);
+      verify(bus).read(programCounter);
+      verify(bus).read(address);
+      verifyNoMoreInteractions(bus);
+      assertThat(actual.register()).isEqualTo(register);
+      assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -599,9 +645,8 @@ class AddressingModeFunctionTests {
       // GIVEN
       final int programCounter = 1337;
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
-      final int addressLow = 0x12;
       final int address = 0x0012;
-      when(bus.read(programCounter)).thenReturn(addressLow);
+      when(bus.read(programCounter)).thenReturn(address);
       final int expectedValue = 0x13;
       when(bus.read(address)).thenReturn(expectedValue);
 
@@ -616,6 +661,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -634,11 +680,11 @@ class AddressingModeFunctionTests {
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
       final int x = 0x07;
       when(register.x()).thenReturn(x);
-      final int addressLow = 0x12;
-      final int addressPlusX = 0x0019;
-      when(bus.read(programCounter)).thenReturn(addressLow);
+      final int zeroPageAddress = 0x12;
+      final int zeroPageAddressPlusX = 0x0019;
+      when(bus.read(programCounter)).thenReturn(zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusX)).thenReturn(expectedValue);
+      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_X.apply(register, bus);
@@ -648,10 +694,11 @@ class AddressingModeFunctionTests {
       verify(register).x();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(addressPlusX);
+      verify(bus).read(zeroPageAddressPlusX);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -663,11 +710,11 @@ class AddressingModeFunctionTests {
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
       final int x = 0x07;
       when(register.x()).thenReturn(x);
-      final int addressLow = 0xFF;
-      final int addressPlusX = 0x06;
-      when(bus.read(programCounter)).thenReturn(addressLow);
+      final int zeroPageAddress = 0xFF;
+      final int zeroPageAddressPlusX = 0x06;
+      when(bus.read(programCounter)).thenReturn(zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusX)).thenReturn(expectedValue);
+      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_X.apply(register, bus);
@@ -677,10 +724,11 @@ class AddressingModeFunctionTests {
       verify(register).x();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(addressPlusX);
+      verify(bus).read(zeroPageAddressPlusX);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -699,9 +747,9 @@ class AddressingModeFunctionTests {
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
       final int y = 0x07;
       when(register.y()).thenReturn(y);
-      final int addressLow = 0x12;
+      final int zeroPageAddress = 0x12;
       final int addressPlusY = 0x0019;
-      when(bus.read(programCounter)).thenReturn(addressLow);
+      when(bus.read(programCounter)).thenReturn(zeroPageAddress);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
@@ -717,6 +765,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -746,6 +795,7 @@ class AddressingModeFunctionTests {
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.valueRead()).isEqualTo(expectedValue);
+      assertThat(actual.addresssLoaded()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
