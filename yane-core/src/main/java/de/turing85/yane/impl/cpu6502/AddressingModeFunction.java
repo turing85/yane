@@ -4,7 +4,6 @@ import de.turing85.yane.api.*;
 import java.util.function.*;
 
 public interface AddressingModeFunction extends BiFunction<Register, CpuBus, AddressingResult> {
-
   AddressingModeFunction ACCUMULATOR = (register, bus) ->
       new AddressingResult(register, register.a(), 0);
 
@@ -22,7 +21,7 @@ public interface AddressingModeFunction extends BiFunction<Register, CpuBus, Add
 
   AddressingModeFunction ABSOLUTE_X = (register, bus) -> {
     final short baseAddress = readAddressAtProgramPointerFromBus(register, bus);
-    final byte baseAddressHigh = (byte) ((baseAddress & 0xFFFF) >> 8) ;
+    final byte baseAddressHigh = (byte) ((baseAddress & 0xFFFF) >> 8);
     final short address = (short) ((baseAddress + register.x()) & 0xFFFF);
     final byte addressHigh = (byte) ((address & 0xFFFF) >> 8);
     final int additionalCyclesNeeded;
