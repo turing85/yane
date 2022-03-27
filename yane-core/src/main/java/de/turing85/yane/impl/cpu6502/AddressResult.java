@@ -4,7 +4,7 @@ import de.turing85.yane.api.*;
 import lombok.*;
 
 @Value(staticConstructor = "of")
-class AddressingResult {
+class AddressResult {
   Register register;
   CpuBus bus;
   int address;

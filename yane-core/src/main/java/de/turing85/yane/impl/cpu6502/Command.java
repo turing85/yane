@@ -1,6 +1,6 @@
 package de.turing85.yane.impl.cpu6502;
 
-import static de.turing85.yane.impl.cpu6502.AddressingMode.*;
+import static de.turing85.yane.impl.cpu6502.AddressMode.*;
 import static de.turing85.yane.impl.cpu6502.Register.*;
 
 import de.turing85.yane.api.*;
@@ -21,12 +21,11 @@ class Command implements CommandFunction {
 
   static Command ADC = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         final int a = register.a();
-        final int value = addressingResult.readValueFromAddress();
+        final int value = addressResult.readValueFromAddress();
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFFFF;
-
         return CommandResult.of(
             register
                 .a(result)
@@ -34,43 +33,42 @@ class Command implements CommandFunction {
                 .zeroFlag(isZero(result))
                 .carryFlag(hasCarried(rawResult))
                 .overflowFlag(hasOverflown(a, value, rawResult)),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "ADC");
 
   static Command AND = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final Register updatedRegister = addressingResult.register();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final Register updatedRegister = addressResult.register();
         final int a = updatedRegister.a();
-        final int value = addressingResult.readValueFromAddress();
+        final int value = addressResult.readValueFromAddress();
         final int rawResult = a & value;
         final int result = rawResult & 0xFF;
-
         return CommandResult.of(
             updatedRegister
                 .a(result)
                 .negativeFlag(isNegative(rawResult))
                 .zeroFlag(result == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "AND");
 
   static Command ASL = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int value = addressResult.readValueFromAddress();
         final int rawResult = value << 1;
         final int result = rawResult & 0xFF;
-        final int address = addressingResult.address();
+        final int address = addressResult.address();
         Register updatedRegister =
-            storeResultDependingOnAddress(address, result, addressingResult.register(), bus);
+            storeValueDependingOnAddress(address, result, addressResult.register(), bus);
         return CommandResult.of(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(isZero(result))
                 .carryFlag(hasCarried(rawResult)),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "ASL");
 
@@ -86,51 +84,48 @@ class Command implements CommandFunction {
 
   static Command BEQ = new Command(
       (register, bus, addressMode) ->
-          branch(addressMode, register, bus, register.isZeroFlagSet()),
+          branch(addressMode, register, bus, register.zeroFlag()),
       "BEQ");
 
   static Command BIT = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int value = addressResult.readValueFromAddress();
         return CommandResult.of(
-            addressingResult.register()
+            addressResult.register()
                 .negativeFlag(isNegative(value))
                 .overflowFlag((value & OVERFLOW_MASK) > 0)
                 .zeroFlag((value & register.a()) == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "BIT");
 
   static Command BMI = new Command(
-      (register, bus, addressMode) ->
-          branch(addressMode, register, bus, register.isNegativeFlagSet()),
+      (register, bus, addressMode) -> branch(addressMode, register, bus, register.negativeFlag()),
       "BMI");
 
   static Command BNE = new Command(
-      (register, bus, addressMode) ->
-          branch(addressMode, register, bus, !register.isZeroFlagSet()),
+      (register, bus, addressMode) -> branch(addressMode, register, bus, !register.zeroFlag()),
       "BNE");
 
   static Command BPL = new Command(
       (register, bus, addressMode) ->
-          branch(addressMode, register, bus, !register.isNegativeFlagSet()),
+          branch(addressMode, register, bus, !register.negativeFlag()),
       "BPL");
 
   static Command BRK = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         final Register updatedRegister = register
             .setDisableIrqFlag()
-            .setBreakFlag();
-        final int returnAddress = (updatedRegister.programCounter() + 1) & 0xFFFF;
-        pushToStack(register, returnAddress, bus);
-
+            .setBreakFlag()
+            .incrementProgramCounter();
+        pushToStack(register, updatedRegister.programCounter() & 0xFFFF, bus);
         return CommandResult.of(
             pushStatusToStack(updatedRegister, bus)
                 .unsetBreakFlag()
                 .programCounter(FORCE_BREAK_PROGRAM_COUNTER),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "BRK");
 
@@ -145,13 +140,11 @@ class Command implements CommandFunction {
       "BVS");
 
   static Command CLC = new Command(
-      (register, bus, addressMode) ->
-          CommandResult.of(register.unsetCarryFlag(), 0),
+      (register, bus, addressMode) -> CommandResult.of(register.unsetCarryFlag(), 0),
       "CLC");
 
   static Command CLD = new Command(
-      (register, bus, addressMode) ->
-          CommandResult.of(register.unsetDecimalModeFlag(), 0),
+      (register, bus, addressMode) -> CommandResult.of(register.unsetDecimalModeFlag(), 0),
       "CLD");
 
   static Command CLI = new Command(
@@ -166,151 +159,145 @@ class Command implements CommandFunction {
 
   static Command CMP = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        return compare(addressingResult, addressingResult.register().a());
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        return compare(addressResult, addressResult.register().a());
       },
       "CMP");
 
   static Command CPX = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        return compare(addressingResult, addressingResult.register().x());
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        return compare(addressResult, addressResult.register().x());
       },
       "CPX");
 
   static Command CPY = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        return compare(addressingResult, addressingResult.register().y());
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        return compare(addressResult, addressResult.register().y());
       },
       "CPY");
 
   static Command DEC = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int valueDecremented = (addressingResult.readValueFromAddress() - 1) & 0xFF;
-        bus.write(addressingResult.address(), valueDecremented);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int valueDecremented = (addressResult.readValueFromAddress() - 1) & 0xFF;
+        bus.write(addressResult.address(), valueDecremented);
         return CommandResult.of(
-            addressingResult.register()
+            addressResult.register()
                 .negativeFlag(isNegative(valueDecremented))
                 .zeroFlag(valueDecremented == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "DEC");
 
   static Command DEX = new Command(
-      (register, bus, addressMode) ->
-          decrement((register.x() - 1) & 0xFF, register::x),
+      (register, bus, addressMode) -> decrement((register.x() - 1) & 0xFF, register::x),
       "DEX");
 
   static Command DEY = new Command(
-      (register, bus, addressMode) ->
-          decrement((register.y() - 1) & 0xFF, register::y),
+      (register, bus, addressMode) -> decrement((register.y() - 1) & 0xFF, register::y),
       "DEY");
 
   static Command EOR = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final Register updatedRegister = addressingResult.register();
-        final int newA = updatedRegister.a() ^ addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final Register updatedRegister = addressResult.register();
+        final int newA = updatedRegister.a() ^ addressResult.readValueFromAddress();
         return CommandResult.of(
             updatedRegister
                 .a(newA)
                 .negativeFlag(isNegative(newA))
                 .zeroFlag(newA == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "EOR");
 
   static Command INC = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int newValue = (addressingResult.readValueFromAddress() + 1) & 0xFF;
-        bus.write(addressingResult.address(), newValue);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int newValue = (addressResult.readValueFromAddress() + 1) & 0xFF;
+        bus.write(addressResult.address(), newValue);
         return CommandResult.of(
-            addressingResult.register()
+            addressResult.register()
                 .negativeFlag(isNegative(newValue))
                 .zeroFlag(newValue == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "INC");
 
   static Command INX = new Command(
-      (register, bus, addressMode) ->
-          increment((register.x() + 1) & 0xFF, register::x),
+      (register, bus, addressMode) -> increment((register.x() + 1) & 0xFF, register::x),
       "INX");
 
   static Command INY = new Command(
-      (register, bus, addressMode) ->
-          increment((register.y() + 1) & 0xFF, register::y),
+      (register, bus, addressMode) -> increment((register.y() + 1) & 0xFF, register::y),
       "INY");
 
   static Command JMP = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         return CommandResult.of(
-            addressingResult.register()
-                .programCounter(addressingResult.address()),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.register().programCounter(addressResult.address()),
+            addressResult.additionalCyclesNeeded());
       },
       "JMP");
 
   static Command JSR = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        Register updatedRegister = addressingResult.register()
-            .decrementProgramCounter();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final Register updatedRegister = addressResult.register().decrementProgramCounter();
         pushProgramCounterToStack(updatedRegister, bus);
         return CommandResult.of(
-            updatedRegister.programCounter(addressingResult.address()),
-            addressingResult.additionalCyclesNeeded());
+            updatedRegister.programCounter(addressResult.address()),
+            addressResult.additionalCyclesNeeded());
       },
       "JSR");
 
   static Command LDA = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressingResult.readValueFromAddress(),
-            addressingResult.register()::a,
-            addressingResult.additionalCyclesNeeded());
+            addressResult.readValueFromAddress(),
+            addressResult.register()::a,
+            addressResult.additionalCyclesNeeded());
       },
       "LDA");
 
   static Command LDX = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressingResult.readValueFromAddress(),
-            addressingResult.register()::x,
-            addressingResult.additionalCyclesNeeded());
+            addressResult.readValueFromAddress(),
+            addressResult.register()::x,
+            addressResult.additionalCyclesNeeded());
       },
       "LDX");
 
   static Command LDY = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressingResult.readValueFromAddress(),
-            addressingResult.register()::y,
-            addressingResult.additionalCyclesNeeded());
+            addressResult.readValueFromAddress(),
+            addressResult.register()::y,
+            addressResult.additionalCyclesNeeded());
       },
       "LDY");
 
   static Command LSR = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int value = addressResult.readValueFromAddress();
         final int result = (value >> 1) & 0xFF;
-        final int address = addressingResult.address();
+        final int address = addressResult.address();
         final Register updatedRegister =
-            storeResultDependingOnAddress(address, result, addressingResult.register(), bus);
+            storeValueDependingOnAddress(address, result, addressResult.register(), bus);
         return CommandResult.of(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
                 .carryFlag((value & 0x01) > 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "LSR");
 
@@ -320,16 +307,16 @@ class Command implements CommandFunction {
 
   static Command ORA = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        Register updatedRegister = addressingResult.register();
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        Register updatedRegister = addressResult.register();
+        final int value = addressResult.readValueFromAddress();
         final int result = value | updatedRegister.a();
         return CommandResult.of(
             updatedRegister
                 .a(result)
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "ORA");
 
@@ -357,37 +344,37 @@ class Command implements CommandFunction {
 
   static Command ROL = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int value = addressResult.readValueFromAddress();
         final int rawResult = (value << 1) & ((value & 0x100) >> 4);
         final int result = rawResult & 0xFF;
-        final int address = addressingResult.address();
+        final int address = addressResult.address();
         final Register updatedRegister =
-            storeResultDependingOnAddress(address, result, addressingResult.register(), bus);
+            storeValueDependingOnAddress(address, result, addressResult.register(), bus);
         return CommandResult.of(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
                 .carryFlag(hasCarried(rawResult)),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "ROL");
 
   static Command ROR = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
-        final int value = addressingResult.readValueFromAddress();
+        final AddressResult addressResult = addressMode.fetch(register, bus);
+        final int value = addressResult.readValueFromAddress();
         final int rawResult = (value >> 1) & ((value & 0x0001) << 4);
         final int result = rawResult & 0xFF;
-        final int address = addressingResult.address();
+        final int address = addressResult.address();
         final Register updatedRegister =
-            storeResultDependingOnAddress(address, result, addressingResult.register(), bus);
+            storeValueDependingOnAddress(address, result, addressResult.register(), bus);
         return CommandResult.of(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
                 .carryFlag((value & 0x01) > 0),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "ROR");
 
@@ -403,26 +390,25 @@ class Command implements CommandFunction {
   static Command RTS = new Command(
       (register, bus, addressMode) ->
           CommandResult.of(
-              pullProgramCounterFromStack(register, bus)
-                  .incrementProgramCounter(),
+              pullProgramCounterFromStack(register, bus).incrementProgramCounter(),
               0),
       "RTS");
 
   static Command SBC = new Command(
       (register, bus, addressMode) -> {
-        final AddressingResult addressingResult = addressMode.fetch(register, bus);
+        final AddressResult addressResult = addressMode.fetch(register, bus);
         final int a = register.a();
-        final int value = addressingResult.readValueFromAddress() ^ 0x00FF;
+        final int value = addressResult.readValueFromAddress() ^ 0x00FF;
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFF;
         return CommandResult.of(
-            addressingResult.register()
+            addressResult.register()
                 .a(result)
                 .negativeFlag(isNegative(result))
                 .overflowFlag(hasOverflown(a, value, rawResult))
                 .zeroFlag(isZero(result))
                 .carryFlag(hasCarried(rawResult)),
-            addressingResult.additionalCyclesNeeded());
+            addressResult.additionalCyclesNeeded());
       },
       "SBC");
 
@@ -435,8 +421,7 @@ class Command implements CommandFunction {
       "SED");
 
   static Command SEI = new Command(
-      (register, bus, addressMode) ->
-          CommandResult.of(register.setDisableIrqFlag(), 0),
+      (register, bus, addressMode) -> CommandResult.of(register.setDisableIrqFlag(), 0),
       "SEI");
 
   static Command STA = new Command(
@@ -506,17 +491,17 @@ class Command implements CommandFunction {
   }
 
   private static CommandResult branch(
-      AddressingMode addressMode,
+      AddressMode addressMode,
       Register register,
       CpuBus bus,
       boolean condition) {
-    final AddressingResult addressingResult = addressMode.fetch(register, bus);
-    final Register updatedRegister = addressingResult.register();
-    int additionalCyclesNeeded = addressingResult.additionalCyclesNeeded();
+    final AddressResult addressResult = addressMode.fetch(register, bus);
+    final Register updatedRegister = addressResult.register();
+    int additionalCyclesNeeded = addressResult.additionalCyclesNeeded();
     if (condition) {
       ++additionalCyclesNeeded;
       final int programCounter = updatedRegister.programCounter();
-      final int newProgramCounter = addressingResult.address();
+      final int newProgramCounter = addressResult.address();
       if (countersAreOnDifferentPages(programCounter, newProgramCounter)) {
         ++additionalCyclesNeeded;
       }
@@ -560,15 +545,15 @@ class Command implements CommandFunction {
     return bus.read(register.incrementAndGetStackPointer());
   }
 
-  private static CommandResult compare(AddressingResult addressingResult, int existingValue) {
-    final Register updatedRegister = addressingResult.register();
-    final int value = addressingResult.readValueFromAddress();
+  private static CommandResult compare(AddressResult addressResult, int existingValue) {
+    final Register updatedRegister = addressResult.register();
+    final int value = addressResult.readValueFromAddress();
     return CommandResult.of(
         updatedRegister
             .negativeFlag(isNegative(value))
             .zeroFlag(value == existingValue)
             .carryFlag(existingValue >= value),
-        addressingResult.additionalCyclesNeeded());
+        addressResult.additionalCyclesNeeded());
   }
 
   private static CommandResult decrement(int newValue, Function<Integer, Register> registerSetter) {
@@ -598,7 +583,7 @@ class Command implements CommandFunction {
         additionalCyclesNeeded);
   }
 
-  private static Register storeResultDependingOnAddress(
+  private static Register storeValueDependingOnAddress(
       int address,
       int result,
       Register register,
@@ -612,13 +597,13 @@ class Command implements CommandFunction {
   }
 
   private static CommandResult writeToBus(
-      AddressingMode addressMode,
+      AddressMode addressMode,
       Supplier<Integer> registerGetter,
       CpuBus bus,
       Register register) {
-    final AddressingResult addressingResult = addressMode.fetch(register, bus);
-    final int address = addressingResult.address();
+    final AddressResult addressResult = addressMode.fetch(register, bus);
+    final int address = addressResult.address();
     bus.write(address, registerGetter.get());
-    return CommandResult.of(register, addressingResult.additionalCyclesNeeded());
+    return CommandResult.of(register, addressResult.additionalCyclesNeeded());
   }
 }

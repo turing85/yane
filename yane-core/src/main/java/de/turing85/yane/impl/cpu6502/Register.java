@@ -141,7 +141,7 @@ class Register {
     return this;
   }
 
-  final boolean isNegativeFlagSet() {
+  final boolean negativeFlag() {
     return (status & NEGATIVE_MASK) > 0;
   }
 
@@ -279,7 +279,7 @@ class Register {
     return this;
   }
 
-  final boolean isZeroFlagSet() {
+  final boolean zeroFlag() {
     return (status & ZERO_MASK) > 0;
   }
 
