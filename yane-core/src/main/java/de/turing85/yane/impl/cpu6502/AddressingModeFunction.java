@@ -4,4 +4,7 @@ import de.turing85.yane.api.*;
 import java.util.function.*;
 
 interface AddressingModeFunction extends BiFunction<Register, CpuBus, AddressingResult> {
+  default AddressingResult fetch(Register register, CpuBus bus) {
+    return apply(register, bus);
+  }
 }

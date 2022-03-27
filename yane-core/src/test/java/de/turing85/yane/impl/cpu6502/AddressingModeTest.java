@@ -23,7 +23,7 @@ class AddressingModeTests {
       when(register.a()).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ACCUMULATOR.apply(register, null);
+      AddressingResult actual = ACCUMULATOR.fetch(register, null);
 
       // THEN
       verify(register, times(1)).a();
@@ -59,7 +59,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      final AddressingResult actual = ABSOLUTE.apply(register, bus);
+      final AddressingResult actual = ABSOLUTE.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -101,7 +101,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      final AddressingResult actual = ABSOLUTE_X.apply(register, bus);
+      final AddressingResult actual = ABSOLUTE_X.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -137,7 +137,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      final AddressingResult actual = ABSOLUTE_X.apply(register, bus);
+      final AddressingResult actual = ABSOLUTE_X.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -180,7 +180,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      final AddressingResult actual = ABSOLUTE_Y.apply(register, bus);
+      final AddressingResult actual = ABSOLUTE_Y.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -216,7 +216,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      final AddressingResult actual = ABSOLUTE_Y.apply(register, bus);
+      final AddressingResult actual = ABSOLUTE_Y.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -249,7 +249,7 @@ class AddressingModeTests {
       when(bus.read(programCounter)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = IMMEDIATE.apply(register, bus);
+      AddressingResult actual = IMMEDIATE.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -272,7 +272,7 @@ class AddressingModeTests {
     @DisplayName("should read nothing")
     void shouldReturnZero() {
       // WHEN
-      AddressingResult actual = IMPLIED.apply(register, null);
+      AddressingResult actual = IMPLIED.fetch(register, null);
 
       // THEN
       verifyNoInteractions(register);
@@ -312,7 +312,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT.apply(register, bus);
+      AddressingResult actual = INDIRECT.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -351,7 +351,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT.apply(register, bus);
+      AddressingResult actual = INDIRECT.fetch(register, bus);
 
       // THEN
       verify(register, times(2)).getAndIncrementProgramCounter();
@@ -395,7 +395,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT_ZERO_PAGE_X.apply(register, bus);
+      AddressingResult actual = INDIRECT_ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -433,7 +433,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT_ZERO_PAGE_X.apply(register, bus);
+      AddressingResult actual = INDIRECT_ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -479,7 +479,7 @@ class AddressingModeTests {
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.apply(register, bus);
+      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -517,7 +517,7 @@ class AddressingModeTests {
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.apply(register, bus);
+      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -554,7 +554,7 @@ class AddressingModeTests {
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.apply(register, bus);
+      AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
       verify(register, times(1)).getAndIncrementProgramCounter();
@@ -591,7 +591,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = RELATIVE.apply(register, bus);
+      AddressingResult actual = RELATIVE.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -618,7 +618,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = RELATIVE.apply(register, bus);
+      AddressingResult actual = RELATIVE.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -651,7 +651,7 @@ class AddressingModeTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ZERO_PAGE.apply(register, bus);
+      AddressingResult actual = ZERO_PAGE.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -687,7 +687,7 @@ class AddressingModeTests {
       when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ZERO_PAGE_X.apply(register, bus);
+      AddressingResult actual = ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -717,7 +717,7 @@ class AddressingModeTests {
       when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ZERO_PAGE_X.apply(register, bus);
+      AddressingResult actual = ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -754,7 +754,7 @@ class AddressingModeTests {
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ZERO_PAGE_Y.apply(register, bus);
+      AddressingResult actual = ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -784,7 +784,7 @@ class AddressingModeTests {
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = ZERO_PAGE_Y.apply(register, bus);
+      AddressingResult actual = ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
