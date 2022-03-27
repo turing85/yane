@@ -25,12 +25,6 @@ public class AddressingMode implements AddressingModeFunction {
       },
       "abs");
 
-  private static int readAddressAtProgramPointerFromBus(Register register, CpuBus bus) {
-    final int addressLow = bus.read(register.getAndIncrementProgramCounter());
-    final int addressHigh = bus.read(register.getAndIncrementProgramCounter());
-    return (addressHigh << 8) | (addressLow & 0xFF);
-  }
-
   static final AddressingMode ABSOLUTE_X = new AddressingMode(
       (register, bus) -> {
         final int address = readAddressAtProgramPointerFromBus(register, bus);
@@ -68,7 +62,7 @@ public class AddressingMode implements AddressingModeFunction {
 
   static final AddressingMode IMPLIED = new AddressingMode(
       (register, bus) -> AddressingResult.of(register, bus, IMPLIED_LOADED_ADDRESS, 0),
-      "#");
+      "impl");
 
   static final AddressingMode INDIRECT = new AddressingMode(
       (register, bus) -> {
@@ -173,5 +167,11 @@ public class AddressingMode implements AddressingModeFunction {
   @Override
   public String toString() {
     return mnemonic();
+  }
+
+  private static int readAddressAtProgramPointerFromBus(Register register, CpuBus bus) {
+    final int addressLow = bus.read(register.getAndIncrementProgramCounter());
+    final int addressHigh = bus.read(register.getAndIncrementProgramCounter());
+    return (addressHigh << 8) | (addressLow & 0xFF);
   }
 }
