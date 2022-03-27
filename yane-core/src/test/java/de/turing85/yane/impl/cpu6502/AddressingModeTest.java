@@ -278,10 +278,10 @@ class AddressingModeTests {
           .thenReturn(programCounterFirst)
           .thenReturn(programCounterSecond);
       int indirectLow = 0x51;
-      int indirectHigh = 0x86;
+      int indirectHigh = 0x69;
       when(bus.read(programCounterFirst)).thenReturn(indirectLow);
       when(bus.read(programCounterSecond)).thenReturn(indirectHigh);
-      int indirect = 0x8651;
+      int indirect = 0x6951;
       final int addressLow = 0x12;
       final int addressHigh = 0x88;
       final int address = 0x8812;
@@ -315,14 +315,16 @@ class AddressingModeTests {
           .thenReturn(programCounterFirst)
           .thenReturn(programCounterSecond);
       int indirectLow = 0xFF;
-      int indirectHigh = 0x86;
+      int indirectHigh = 0x69;
       when(bus.read(programCounterFirst)).thenReturn(indirectLow);
       when(bus.read(programCounterSecond)).thenReturn(indirectHigh);
-      int indirect = 0x86ff;
+      int indirect = 0x69ff;
+      int nextIndirectDueToBug = 0x6900;
       final int addressLow = 0x12;
-      final int address = 0x8612;
+      final int addressHigh = 0x88;
+      final int address = 0x8812;
       when(bus.read(indirect)).thenReturn(addressLow);
-      when(bus.read(indirectHigh)).thenReturn(indirectHigh);
+      when(bus.read(nextIndirectDueToBug)).thenReturn(addressHigh);
 
       // WHEN
       AddressingResult actual = INDIRECT.fetch(register, bus);
@@ -333,6 +335,7 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
       verify(bus, times(1)).read(indirect);
+      verify(bus, times(1)).read(nextIndirectDueToBug);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.bus()).isEqualTo(bus);

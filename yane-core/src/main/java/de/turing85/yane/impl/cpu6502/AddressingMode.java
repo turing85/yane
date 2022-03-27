@@ -72,7 +72,7 @@ class AddressingMode implements AddressingModeFunction {
         final int absoluteAddressHigh;
         if (indirectLow == 0xFF) {
           // Hardware bug in 6502
-          absoluteAddressHigh = indirect >> 8;
+          absoluteAddressHigh = bus.read(indirect & 0xFF00);
         } else {
           absoluteAddressHigh = bus.read((indirect + 1) & 0xFFFF);
         }
@@ -87,7 +87,7 @@ class AddressingMode implements AddressingModeFunction {
             bus.read(register.getAndIncrementProgramCounter()) & 0xFF;
         final int zeroPagePlusXOffsetIndirectAddress =
             (zeroPageIndirectAddress + register.x()) & 0xFF;
-        final int absoluteAddress = readZeroPageAddressFromBus(
+        final int absoluteAddress = readAddressFromBus(
             zeroPagePlusXOffsetIndirectAddress,
             bus);
         return AddressingResult.of(register, bus, absoluteAddress, 0);
@@ -97,7 +97,7 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode INDIRECT_ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
-        final int absoluteAddress = readZeroPageAddressFromBus(zeroPageIndirectAddress, bus);
+        final int absoluteAddress = readAddressFromBus(zeroPageIndirectAddress, bus);
         final int absoluteAddressHigh = (absoluteAddress >> 8) & 0xFF;
         final int absoluteAddressPlusY = (absoluteAddress + register.y()) & 0xFFFF;
         final int absoluteAddressPlusYHigh = absoluteAddressPlusY >> 8;
@@ -169,7 +169,7 @@ class AddressingMode implements AddressingModeFunction {
     return (addressHigh << 8) | (addressLow & 0xFF);
   }
 
-  private static int readZeroPageAddressFromBus(int zeroPageAddress, CpuBus bus) {
+  private static int readAddressFromBus(int zeroPageAddress, CpuBus bus) {
     final int addressLow = bus.read(zeroPageAddress & 0x00FF);
     final int addressHigh = bus.read((zeroPageAddress + 1) & 0x00FF);
     return ((addressHigh << 8) | addressLow) & 0xFFFF;
