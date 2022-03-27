@@ -14,23 +14,20 @@ class AddressingModeTests {
   @DisplayName("ACCUMULATOR addressing mode tests")
   class AccumulatorTests {
     private final Register register = mock(Register.class);
+    private final CpuBus bus = mock(CpuBus.class);
 
     @Test
     @DisplayName("should return register A when called")
     void shouldReturnRegisterA() {
-      // GIVEN
-      final int expectedValue = 0x13;
-      when(register.a()).thenReturn(expectedValue);
-
       // WHEN
-      AddressingResult actual = ACCUMULATOR.fetch(register, null);
+      AddressingResult actual = ACCUMULATOR.fetch(register, bus);
 
       // THEN
-      verify(register, times(1)).a();
-      verifyNoMoreInteractions(register);
+      verifyNoInteractions(register);
+      verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(IMPLIED_LOADED_ADDRESS);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(IMPLIED_LOADED_ADDRESS);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -53,10 +50,8 @@ class AddressingModeTests {
       final int addressLow = 0x17;
       final int addressHigh = 0x88;
       final int address = 0x8817;
-      final int expectedValue = 0x13;
       when(bus.read(programCounterFirst)).thenReturn(addressLow);
       when(bus.read(programCounterSecond)).thenReturn(addressHigh);
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       final AddressingResult actual = ABSOLUTE.fetch(register, bus);
@@ -66,11 +61,10 @@ class AddressingModeTests {
       verifyNoMoreInteractions(register);
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -95,10 +89,8 @@ class AddressingModeTests {
       final int addressLow = 0x12;
       final int addressHigh = 0x88;
       final int address = 0x8819;
-      final int expectedValue = 0x13;
       when(bus.read(programCounterFirst)).thenReturn(addressLow);
       when(bus.read(programCounterSecond)).thenReturn(addressHigh);
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       final AddressingResult actual = ABSOLUTE_X.fetch(register, bus);
@@ -109,11 +101,9 @@ class AddressingModeTests {
       verifyNoMoreInteractions(register);
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -131,10 +121,8 @@ class AddressingModeTests {
       final int addressLow = 0xFF;
       final int addressHigh = 0x88;
       final int address = 0x8906;
-      final int expectedValue = 0x13;
       when(bus.read(programCounterFirst)).thenReturn(addressLow);
       when(bus.read(programCounterSecond)).thenReturn(addressHigh);
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       final AddressingResult actual = ABSOLUTE_X.fetch(register, bus);
@@ -145,11 +133,10 @@ class AddressingModeTests {
       verifyNoMoreInteractions(register);
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
   }
@@ -174,10 +161,8 @@ class AddressingModeTests {
       final int addressLow = 0x12;
       final int addressHigh = 0x88;
       final int address = 0x8819;
-      final int expectedValue = 0x13;
       when(bus.read(programCounterFirst)).thenReturn(addressLow);
       when(bus.read(programCounterSecond)).thenReturn(addressHigh);
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       final AddressingResult actual = ABSOLUTE_Y.fetch(register, bus);
@@ -188,11 +173,10 @@ class AddressingModeTests {
       verifyNoMoreInteractions(register);
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -210,10 +194,8 @@ class AddressingModeTests {
       final int addressLow = 0xFF;
       final int addressHigh = 0x88;
       final int address = 0x8906;
-      final int expectedValue = 0x13;
       when(bus.read(programCounterFirst)).thenReturn(addressLow);
       when(bus.read(programCounterSecond)).thenReturn(addressHigh);
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       final AddressingResult actual = ABSOLUTE_Y.fetch(register, bus);
@@ -224,11 +206,10 @@ class AddressingModeTests {
       verifyNoMoreInteractions(register);
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
   }
@@ -236,8 +217,8 @@ class AddressingModeTests {
   @Nested
   @DisplayName("IMMEDIATE addressing mode tests")
   class ImmediateTests {
-    private final CpuBus bus = mock(CpuBus.class);
     private final Register register = mock(Register.class);
+    private final CpuBus bus = mock(CpuBus.class);
 
     @Test
     @DisplayName("should read address from bus and return its value")
@@ -245,20 +226,16 @@ class AddressingModeTests {
       // GIVEN
       final int programCounter = 1337;
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
-      final int expectedValue = 0x13;
-      when(bus.read(programCounter)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = IMMEDIATE.fetch(register, bus);
 
       // THEN
-      verify(register, times(1)).getAndIncrementProgramCounter();
-      verifyNoMoreInteractions(register);
-      verify(bus, times(1)).read(programCounter);
-      verifyNoMoreInteractions(bus);
+      verifyNoInteractions(register);
+      verifyNoInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(IMMEDIATE_LOADED_ADDRESS);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(IMMEDIATE_LOADED_ADDRESS);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -267,18 +244,20 @@ class AddressingModeTests {
   @DisplayName("IMPLIED addressing mode tests")
   class ImpliedTests {
     private final Register register = mock(Register.class);
+    private final CpuBus bus = mock(CpuBus.class);
 
     @Test
     @DisplayName("should read nothing")
     void shouldReturnZero() {
       // WHEN
-      AddressingResult actual = IMPLIED.fetch(register, null);
+      AddressingResult actual = IMPLIED.fetch(register, bus);
 
       // THEN
       verifyNoInteractions(register);
+      verifyNoInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(0);
-      assertThat(actual.addressLoaded()).isEqualTo(IMPLIED_LOADED_ADDRESS);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(IMPLIED_LOADED_ADDRESS);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -308,8 +287,6 @@ class AddressingModeTests {
       final int address = 0x8812;
       when(bus.read(indirect)).thenReturn(addressLow);
       when(bus.read(indirect + 1)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT.fetch(register, bus);
@@ -321,11 +298,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounterSecond);
       verify(bus, times(1)).read(indirect);
       verify(bus, times(1)).read(indirect + 1);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -347,8 +323,6 @@ class AddressingModeTests {
       final int address = 0x8612;
       when(bus.read(indirect)).thenReturn(addressLow);
       when(bus.read(indirectHigh)).thenReturn(indirectHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT.fetch(register, bus);
@@ -359,11 +333,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounterFirst);
       verify(bus, times(1)).read(programCounterSecond);
       verify(bus, times(1)).read(indirect);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -391,8 +364,6 @@ class AddressingModeTests {
       final int address = 0x8812;
       when(bus.read(indirectPlusX)).thenReturn(addressLow);
       when(bus.read(indirectPlusXPlusOne)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT_ZERO_PAGE_X.fetch(register, bus);
@@ -404,11 +375,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounter);
       verify(bus, times(1)).read(indirectPlusX);
       verify(bus, times(1)).read(indirectPlusXPlusOne);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -429,8 +399,6 @@ class AddressingModeTests {
       final int address = 0x8812;
       when(bus.read(indirectPlusX)).thenReturn(addressLow);
       when(bus.read(indirectPlusXPlusOne)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT_ZERO_PAGE_X.fetch(register, bus);
@@ -442,11 +410,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounter);
       verify(bus, times(1)).read(indirectPlusX);
       verify(bus, times(1)).read(indirectPlusXPlusOne);
-      verify(bus, times(1)).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -475,8 +442,6 @@ class AddressingModeTests {
       final int addressPlusY = 0x8819;
       when(bus.read(indirect)).thenReturn(addressLow);
       when(bus.read(indirectPlusOne)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
@@ -488,11 +453,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounter);
       verify(bus, times(1)).read(indirect);
       verify(bus, times(1)).read(indirectPlusOne);
-      verify(bus, times(1)).read(addressPlusY);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(addressPlusY);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -513,8 +477,6 @@ class AddressingModeTests {
       final int addressPlusY = 0x8906;
       when(bus.read(indirect)).thenReturn(addressLow);
       when(bus.read(indirectPlusOne)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
@@ -526,11 +488,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounter);
       verify(bus, times(1)).read(indirect);
       verify(bus, times(1)).read(indirectPlusOne);
-      verify(bus, times(1)).read(addressPlusY);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(addressPlusY);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
     }
 
@@ -550,8 +511,6 @@ class AddressingModeTests {
       final int addressPlusY = 0x8819;
       when(bus.read(indirect)).thenReturn(addressLow);
       when(bus.read(indirectPlusOne)).thenReturn(addressHigh);
-      final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
@@ -563,11 +522,10 @@ class AddressingModeTests {
       verify(bus, times(1)).read(programCounter);
       verify(bus, times(1)).read(indirect);
       verify(bus, times(1)).read(indirectPlusOne);
-      verify(bus, times(1)).read(addressPlusY);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(addressPlusY);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -587,8 +545,6 @@ class AddressingModeTests {
       final int relativeAddress = 0x68;
       when(bus.read(programCounter)).thenReturn(relativeAddress);
       final int address = (programCounter + relativeAddress) & 0xFFFF;
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = RELATIVE.fetch(register, bus);
@@ -597,11 +553,10 @@ class AddressingModeTests {
       verify(register).getAndIncrementProgramCounter();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -614,8 +569,6 @@ class AddressingModeTests {
       final int relativeAddress = -37;
       when(bus.read(programCounter)).thenReturn(relativeAddress);
       final int address = 1300;
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = RELATIVE.fetch(register, bus);
@@ -624,11 +577,10 @@ class AddressingModeTests {
       verify(register).getAndIncrementProgramCounter();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -645,10 +597,8 @@ class AddressingModeTests {
       // GIVEN
       final int programCounter = 1337;
       when(register.getAndIncrementProgramCounter()).thenReturn(programCounter);
-      final int address = 0x0012;
-      when(bus.read(programCounter)).thenReturn(address);
-      final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
+      final int zeroPageAddress = 0x0012;
+      when(bus.read(programCounter)).thenReturn(zeroPageAddress);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE.fetch(register, bus);
@@ -657,11 +607,10 @@ class AddressingModeTests {
       verify(register).getAndIncrementProgramCounter();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(address);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(address);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(zeroPageAddress);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -683,8 +632,6 @@ class AddressingModeTests {
       final int zeroPageAddress = 0x12;
       final int zeroPageAddressPlusX = 0x0019;
       when(bus.read(programCounter)).thenReturn(zeroPageAddress);
-      final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_X.fetch(register, bus);
@@ -694,11 +641,10 @@ class AddressingModeTests {
       verify(register).x();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(zeroPageAddressPlusX);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(zeroPageAddressPlusX);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -713,8 +659,6 @@ class AddressingModeTests {
       final int zeroPageAddress = 0xFF;
       final int zeroPageAddressPlusX = 0x06;
       when(bus.read(programCounter)).thenReturn(zeroPageAddress);
-      final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_X.fetch(register, bus);
@@ -724,11 +668,10 @@ class AddressingModeTests {
       verify(register).x();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(zeroPageAddressPlusX);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(zeroPageAddressPlusX);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
@@ -750,8 +693,6 @@ class AddressingModeTests {
       final int zeroPageAddress = 0x12;
       final int addressPlusY = 0x0019;
       when(bus.read(programCounter)).thenReturn(zeroPageAddress);
-      final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_Y.fetch(register, bus);
@@ -761,11 +702,10 @@ class AddressingModeTests {
       verify(register).y();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(addressPlusY);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(addressPlusY);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -780,8 +720,6 @@ class AddressingModeTests {
       final int address = 0xFF;
       final int addressPlusY = 0x06;
       when(bus.read(programCounter)).thenReturn(address);
-      final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
       // WHEN
       AddressingResult actual = ZERO_PAGE_Y.fetch(register, bus);
@@ -791,11 +729,10 @@ class AddressingModeTests {
       verify(register).y();
       verifyNoMoreInteractions(register);
       verify(bus).read(programCounter);
-      verify(bus).read(addressPlusY);
       verifyNoMoreInteractions(bus);
       assertThat(actual.register()).isEqualTo(register);
-      assertThat(actual.valueRead()).isEqualTo(expectedValue);
-      assertThat(actual.addressLoaded()).isEqualTo(addressPlusY);
+      assertThat(actual.bus()).isEqualTo(bus);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
