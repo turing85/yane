@@ -56,13 +56,13 @@ class RegisterTest {
           expectedY,
           expectedStackPointer,
           expectedProgramCounter,
-          expectedCarry,
-          expectedZero,
-          expectedDisableInterrupt,
-          expectedDecimalMode,
-          expectedBreakFlag,
+          expectedNegative,
           expectedOverflow,
-          expectedNegative);
+          expectedBreakFlag,
+          expectedDecimalMode,
+          expectedDisableInterrupt,
+          expectedZero,
+          expectedCarry);
 
       // THEN
       assertThat(register.a()).isEqualTo(expectedA);

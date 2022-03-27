@@ -7,139 +7,281 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class Register {
+class Register {
+  static final int NEGATIVE_MASK = 0x80;
+  static final int OVERFLOW_MASK = 0x40;
+  private static final int UNUSED_MASK = 0x20;
+  private static final int BREAK_MASK = 0x10;
+  private static final int DECIMAL_MASK = 0x08;
+  private static final int INTERRUPT_MASK = 0x04;
+  private static final int ZERO_MASK = 0x02;
+  private static final int CARRY_MASK = 0x01;
+
   private int a;
   private int x;
   private int y;
   private int stackPointer;
   private int programCounter;
+  private int status;
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean carryFlag;
+  public Register(
+      int a,
+      int x,
+      int y,
+      int stackPointer,
+      int programCounter,
+      boolean negativeFlag,
+      boolean overflowFlag,
+      boolean breakFlag,
+      boolean decimalFlag,
+      boolean disableInterruptFlag,
+      boolean zeroFlag,
+      boolean carryFlag) {
+    this(a, x, y, stackPointer, programCounter, 0);
+    initializeStatus(
+        negativeFlag,
+        overflowFlag,
+        breakFlag,
+        decimalFlag,
+        disableInterruptFlag,
+        zeroFlag,
+        carryFlag);
+  }
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean zeroFlag;
-
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean disableInterruptFlag;
-
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean decimalModeFlag;
-
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean breakFlag;
-
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean overflowFlag;
-
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private boolean negativeFlag;
+  private void initializeStatus(
+      boolean negativeFlag,
+      boolean overflowFlag,
+      boolean breakFlag,
+      boolean decimalFlag,
+      boolean disableInterruptFlag,
+      boolean zeroFlag,
+      boolean carryFlag) {
+    if (negativeFlag) {
+      setNegativeFlag();
+    }
+    if (overflowFlag) {
+      setOverflowFlag();
+    }
+    if (breakFlag) {
+      setBreakFlag();
+    }
+    if (decimalFlag) {
+      setDecimalModeFlag();
+    }
+    if (disableInterruptFlag) {
+      setDisableInterruptFlag();
+    }
+    if (zeroFlag) {
+      setZeroFlag();
+    }
+    if (carryFlag) {
+      setCarryFlag();
+    }
+  }
 
   int getAndIncrementProgramCounter() {
     return programCounter++;
   }
 
-  Register setCarryFlag(){
-    carryFlag = true;
+  Register incrementProgramCounter() {
+    ++programCounter;
     return this;
   }
 
-  Register unsetCarryFlag() {
-    carryFlag = false;
+  Register decrementProgramCounter() {
+    --programCounter;
     return this;
   }
 
-  boolean isCarryFlagSet() {
-    return carryFlag;
+  int getAndDecrementStackPointer() {
+    return stackPointer--;
   }
 
-  Register setZeroFlag() {
-    zeroFlag = true;
+  int incrementAndGetStackPointer() {
+    return ++stackPointer;
+  }
+
+  final Register negativeFlag(boolean negativeFlag) {
+    if (negativeFlag) {
+      setNegativeFlag();
+    } else {
+      unsetNegativeFlag();
+    }
     return this;
   }
 
-  Register unsetZeroFlag() {
-    zeroFlag = false;
+  final Register setNegativeFlag() {
+    status |= NEGATIVE_MASK;
     return this;
   }
 
-  boolean isZeroFlagSet() {
-    return zeroFlag;
-  }
-
-  Register setDisableInterruptFlag() {
-    disableInterruptFlag = true;
+  final Register unsetNegativeFlag() {
+    status &= ~NEGATIVE_MASK;
     return this;
   }
 
-  Register unsetDisableInterruptFlag() {
-    disableInterruptFlag = false;
+  final boolean isNegativeFlagSet() {
+    return (status & NEGATIVE_MASK) > 0;
+  }
+
+  final Register overflowFlag(boolean overflowFlag) {
+    if (overflowFlag) {
+      setOverflowFlag();
+    } else {
+      unsetOverflowFlag();
+    }
     return this;
   }
 
-  boolean isInterruptFlagSet() {
-    return disableInterruptFlag;
-  }
-
-  Register setDecimalModeFlag() {
-    decimalModeFlag = true;
+  final Register unusedFlag(boolean unusedFlag) {
+    if (unusedFlag) {
+      setUnusedFlag();
+    } else {
+      unsetUnusedFlag();
+    }
     return this;
   }
 
-  Register unsetDecimalModeFlag() {
-    decimalModeFlag = false;
-    return this;
-  }
-  boolean isDecimalModeFlagSet() {
-    return decimalModeFlag;
-  }
-
-  Register setBreakFlag() {
-    breakFlag = true;
+  final Register setUnusedFlag() {
+    status |= UNUSED_MASK;
     return this;
   }
 
-  Register unsetBreakFlag() {
-    breakFlag = false;
+  final Register unsetUnusedFlag() {
+    status &= ~UNUSED_MASK;
     return this;
   }
 
-  boolean isBreakFlagSet() {
-    return breakFlag;
+  final boolean isUnusedFlagSet() {
+    return (status & UNUSED_MASK) > 0;
   }
 
-  Register setOverflowFlag() {
-    overflowFlag = true;
+  final Register setOverflowFlag() {
+    status |= OVERFLOW_MASK;
     return this;
   }
 
-  Register unsetOverflowFlag() {
-    overflowFlag = false;
+  final Register unsetOverflowFlag() {
+    status &= ~OVERFLOW_MASK;
     return this;
   }
 
-  boolean isOverflowFlagSet() {
-    return overflowFlag;
+  final boolean isOverflowFlagSet() {
+    return (status & OVERFLOW_MASK) > 0;
   }
 
-  Register setNegativeFlag() {
-    negativeFlag = true;
+  final Register breakFlag(boolean breakFlag) {
+    if (breakFlag) {
+      setBreakFlag();
+    } else {
+      unsetBreakFlag();
+    }
     return this;
   }
 
-  Register unsetNegativeFlag() {
-    negativeFlag = false;
+  final Register setBreakFlag() {
+    status |= BREAK_MASK;
     return this;
   }
 
-  boolean isNegativeFlagSet() {
-    return negativeFlag;
+  final Register unsetBreakFlag() {
+    status &= ~BREAK_MASK;
+    return this;
+  }
+
+  final boolean isBreakFlagSet() {
+    return (status & BREAK_MASK) > 0;
+  }
+
+  final Register decimalModeFlag(boolean decimalModeFlag) {
+    if (decimalModeFlag) {
+      setDecimalModeFlag();
+    } else {
+      unsetDecimalModeFlag();
+    }
+    return this;
+  }
+
+  final Register setDecimalModeFlag() {
+    status |= DECIMAL_MASK;
+    return this;
+  }
+
+  final Register unsetDecimalModeFlag() {
+    status &= ~DECIMAL_MASK;
+    return this;
+  }
+
+  final boolean isDecimalModeFlagSet() {
+    return (status & DECIMAL_MASK) > 0;
+  }
+
+  final Register disableInterruptFlag(boolean disableInterruptFlag) {
+    if (disableInterruptFlag) {
+      setDisableInterruptFlag();
+    } else {
+      unsetDisableInterruptFlag();
+    }
+    return this;
+  }
+
+  final Register setDisableInterruptFlag() {
+    status |= INTERRUPT_MASK;
+    return this;
+  }
+
+  final Register unsetDisableInterruptFlag() {
+    status &= ~INTERRUPT_MASK;
+    return this;
+  }
+
+  final boolean isInterruptFlagSet() {
+    return (status & INTERRUPT_MASK) > 0;
+  }
+
+  final Register zeroFlag(boolean zeroFlag) {
+    if (zeroFlag) {
+      setZeroFlag();
+    } else {
+      unsetZeroFlag();
+    }
+    return this;
+  }
+
+  final Register setZeroFlag() {
+    status |= ZERO_MASK;
+    return this;
+  }
+
+  final Register unsetZeroFlag() {
+    status &= ~ZERO_MASK;
+    return this;
+  }
+
+  final boolean isZeroFlagSet() {
+    return (status & ZERO_MASK) > 0;
+  }
+
+  final Register carryFlag(boolean carryFlag) {
+    if (carryFlag) {
+      setCarryFlag();
+    } else {
+      unsetCarryFlag();
+    }
+    return this;
+  }
+
+  final Register setCarryFlag(){
+    status |= CARRY_MASK;
+    return this;
+  }
+
+  final Register unsetCarryFlag() {
+    status &= ~CARRY_MASK;
+    return this;
+  }
+
+  final boolean isCarryFlagSet() {
+    return (status & CARRY_MASK) > 0;
   }
 }
