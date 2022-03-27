@@ -11,7 +11,7 @@ import lombok.experimental.Delegate;
 @Value
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Command implements CommandFunction {
+class Command implements CommandFunction {
   private static final int FORCE_BREAK_PROGRAM_COUNTER = 0xFFFFFFFE;
 
   static Command ADC = new Command(

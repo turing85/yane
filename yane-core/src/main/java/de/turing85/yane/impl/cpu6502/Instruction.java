@@ -8,7 +8,7 @@ import lombok.*;
 @Value
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Instruction implements de.turing85.yane.api.Instruction {
+class Instruction implements de.turing85.yane.api.Instruction {
   static final Set<Instruction> INSTRUCTIONS;
   static final Map<Byte, Instruction> INSTRUCTIONS_BY_OPCODE;
   static final Map<String, Set<Instruction>> INSTRUCTIONS_BY_MNEMONIC;

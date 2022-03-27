@@ -8,7 +8,7 @@ import lombok.experimental.Delegate;
 @EqualsAndHashCode
 @Getter(AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class AddressingMode implements AddressingModeFunction {
+class AddressingMode implements AddressingModeFunction {
   static int IMMEDIATE_LOADED_ADDRESS = Integer.MIN_VALUE;
   static int IMPLIED_LOADED_ADDRESS = Integer.MIN_VALUE + 1;
   static int UNKNOWN_LOADED_ADDRESS = Integer.MIN_VALUE + 2;
