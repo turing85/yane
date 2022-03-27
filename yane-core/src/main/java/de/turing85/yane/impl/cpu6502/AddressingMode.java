@@ -130,7 +130,7 @@ public class AddressingMode implements AddressingModeFunction {
         final int address = (programCounter + signedRelativeAddress) & 0xFFFF;
         return AddressingResult.of(register, bus, address, 0);
       },
-      "REL");
+      "rel");
 
   static final AddressingMode ZERO_PAGE = new AddressingMode(
       (register, bus) -> {
