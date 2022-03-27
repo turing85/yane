@@ -14,6 +14,11 @@ import lombok.experimental.Delegate;
 class Command implements CommandFunction {
   private static final int FORCE_BREAK_PROGRAM_COUNTER = 0xFFFFFFFE;
 
+  @Delegate
+  CommandFunction function;
+
+  String mnemonic;
+
   static Command ADC = new Command(
       (register, bus, addressMode) -> {
         final AddressingResult addressingResult = addressMode.fetch(register, bus);
@@ -116,7 +121,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressingResult addressingResult = addressMode.fetch(register, bus);
         final Register updatedRegister = register
-            .setDisableInterruptFlag()
+            .setDisableIrqFlag()
             .setBreakFlag();
         final int returnAddress = (updatedRegister.programCounter() + 1) & 0xFFFF;
         pushToStack(register, returnAddress, bus);
@@ -151,7 +156,7 @@ class Command implements CommandFunction {
 
   static Command CLI = new Command(
       (register, bus, addressMode) ->
-          CommandResult.of(register.unsetDisableInterruptFlag(), 0),
+          CommandResult.of(register.unsetDisableIrqFlag(), 0),
       "CLI");
 
   static Command CLV = new Command(
@@ -431,7 +436,7 @@ class Command implements CommandFunction {
 
   static Command SEI = new Command(
       (register, bus, addressMode) ->
-          CommandResult.of(register.setDisableInterruptFlag(), 0),
+          CommandResult.of(register.setDisableIrqFlag(), 0),
       "SEI");
 
   static Command STA = new Command(
@@ -477,10 +482,6 @@ class Command implements CommandFunction {
   static Command UNKNOWN = new Command(
       (register, bus, addressMode) -> CommandResult.of(register, 0),
       "???");
-
-  @Delegate
-  CommandFunction function;
-  String mnemonic;
 
   @Override
   public String toString() {

@@ -16,7 +16,7 @@ class Register {
   static final int UNUSED_MASK = 0x20;
   static final int BREAK_MASK = 0x10;
   static final int DECIMAL_MASK = 0x08;
-  static final int INTERRUPT_MASK = 0x04;
+  static final int DISABLE_IRQ_MASK = 0x04;
   static final int ZERO_MASK = 0x02;
   static final int CARRY_MASK = 0x01;
 
@@ -42,7 +42,7 @@ class Register {
       boolean overflowFlag,
       boolean breakFlag,
       boolean decimalFlag,
-      boolean disableInterruptFlag,
+      boolean disableIrqFlag,
       boolean zeroFlag,
       boolean carryFlag) {
     this(a, x, y, stackPointer, programCounter, 0);
@@ -51,7 +51,7 @@ class Register {
         overflowFlag,
         breakFlag,
         decimalFlag,
-        disableInterruptFlag,
+        disableIrqFlag,
         zeroFlag,
         carryFlag);
   }
@@ -61,7 +61,7 @@ class Register {
       boolean overflowFlag,
       boolean breakFlag,
       boolean decimalFlag,
-      boolean disableInterruptFlag,
+      boolean disableIrqFlag,
       boolean zeroFlag,
       boolean carryFlag) {
     if (negativeFlag) {
@@ -76,8 +76,8 @@ class Register {
     if (decimalFlag) {
       setDecimalModeFlag();
     }
-    if (disableInterruptFlag) {
-      setDisableInterruptFlag();
+    if (disableIrqFlag) {
+      setDisableIrqFlag();
     }
     if (zeroFlag) {
       setZeroFlag();
@@ -237,27 +237,27 @@ class Register {
     return (status & DECIMAL_MASK) > 0;
   }
 
-  final Register disableInterruptFlag(boolean disableInterruptFlag) {
-    if (disableInterruptFlag) {
-      setDisableInterruptFlag();
+  final Register setDisableIrqFlag(boolean disableIrqFlag) {
+    if (disableIrqFlag) {
+      setDisableIrqFlag();
     } else {
-      unsetDisableInterruptFlag();
+      unsetDisableIrqFlag();
     }
     return this;
   }
 
-  final Register setDisableInterruptFlag() {
-    status |= INTERRUPT_MASK;
+  final Register setDisableIrqFlag() {
+    status |= DISABLE_IRQ_MASK;
     return this;
   }
 
-  final Register unsetDisableInterruptFlag() {
-    status &= ~INTERRUPT_MASK;
+  final Register unsetDisableIrqFlag() {
+    status &= ~DISABLE_IRQ_MASK;
     return this;
   }
 
-  final boolean isInterruptFlagSet() {
-    return (status & INTERRUPT_MASK) > 0;
+  final boolean isDisableIrqFlagSet() {
+    return (status & DISABLE_IRQ_MASK) > 0;
   }
 
   final Register zeroFlag(boolean zeroFlag) {
@@ -292,7 +292,7 @@ class Register {
     return this;
   }
 
-  final Register setCarryFlag(){
+  final Register setCarryFlag() {
     status |= CARRY_MASK;
     return this;
   }

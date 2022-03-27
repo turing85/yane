@@ -26,7 +26,7 @@ class RegisterTest {
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isZeroFlagSet()).isEqualTo(false);
-      assertThat(register.isInterruptFlagSet()).isEqualTo(false);
+      assertThat(register.isDisableIrqFlagSet()).isEqualTo(false);
       assertThat(register.isDecimalModeFlagSet()).isEqualTo(false);
       assertThat(register.isBreakFlagSet()).isEqualTo(false);
       assertThat(register.isOverflowFlagSet()).isEqualTo(false);
@@ -73,7 +73,7 @@ class RegisterTest {
       assertThat(register.programCounter()).isEqualTo(expectedProgramCounter);
       assertThat(register.isCarryFlagSet()).isEqualTo(expectedCarry);
       assertThat(register.isZeroFlagSet()).isEqualTo(expectedZero);
-      assertThat(register.isInterruptFlagSet()).isEqualTo(expectedDisableInterrupt);
+      assertThat(register.isDisableIrqFlagSet()).isEqualTo(expectedDisableInterrupt);
       assertThat(register.isDecimalModeFlagSet()).isEqualTo(expectedDecimalMode);
       assertThat(register.isBreakFlagSet()).isEqualTo(expectedBreakFlag);
       assertThat(register.isOverflowFlagSet()).isEqualTo(expectedOverflow);
@@ -359,22 +359,22 @@ class RegisterTest {
     @DisplayName("should enable interrupt flag when disable interrupt flag is set")
     void shouldReturnTrueWhenInterruptFlagIsSet() {
       // WHEN
-      final Register actual = defaultRegister.setDisableInterruptFlag();
+      final Register actual = defaultRegister.setDisableIrqFlag();
 
       // THEN
       assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isInterruptFlagSet()).isTrue();
+      assertThat(actual.isDisableIrqFlagSet()).isTrue();
     }
 
     @Test
     @DisplayName("should disable interrupt flag when disable interrupt flag is unset")
     void shouldReturnFalseWhenDisableInterruptIsUnset() {
       // WHEN
-      final Register actual = allSetRegister.unsetDisableInterruptFlag();
+      final Register actual = allSetRegister.unsetDisableIrqFlag();
 
       // THEN
       assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isInterruptFlagSet()).isFalse();
+      assertThat(actual.isDisableIrqFlagSet()).isFalse();
     }
 
     @Test
