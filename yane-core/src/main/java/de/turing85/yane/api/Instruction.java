@@ -4,6 +4,5 @@ public interface Instruction {
   String mnemonic();
   byte code();
   int bytesToRead();
-  int minCycles();
-  int maxCycles();
+  int cycles();
 }

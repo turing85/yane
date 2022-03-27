@@ -1,14 +1,14 @@
 package de.turing85.yane.impl.cpu6502;
 
 import static com.google.common.truth.Truth.*;
-import static de.turing85.yane.impl.cpu6502.AddressingModeFunction.*;
+import static de.turing85.yane.impl.cpu6502.AddressingMode.*;
 import static org.mockito.Mockito.*;
 
 import de.turing85.yane.api.*;
 import org.junit.jupiter.api.*;
 
 @DisplayName("Addressing mode function tests")
-class AddressingModeFunctionTests {
+class AddressingModeTests {
 
   @Nested
   @DisplayName("ACCUMULATOR addressing mode tests")
@@ -573,7 +573,7 @@ class AddressingModeFunctionTests {
   }
 
   @Nested
-  @DisplayName("REL addressing mode tests")
+  @DisplayName("RELATIVE addressing mode tests")
   class RelTests {
     private final Register register = mock(Register.class);
     private final CpuBus bus = mock(CpuBus.class);
@@ -591,7 +591,7 @@ class AddressingModeFunctionTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = REL.apply(register, bus);
+      AddressingResult actual = RELATIVE.apply(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
@@ -618,7 +618,7 @@ class AddressingModeFunctionTests {
       when(bus.read(address)).thenReturn(expectedValue);
 
       // WHEN
-      AddressingResult actual = REL.apply(register, bus);
+      AddressingResult actual = RELATIVE.apply(register, bus);
 
       // THEN
       verify(register).getAndIncrementProgramCounter();
