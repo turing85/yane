@@ -458,8 +458,6 @@ public interface Command {
   Command SEI = (register, bus, addressMode) ->
       CommandResult.of(register.setDisableInterruptFlag(), 0);
 
-  CommandResult execute(Register register, CpuBus bus, AddressingModeFunction addressingMode);
-
   Command STA = (register, bus, addressMode) -> store(addressMode, register::a, bus, register);
 
   private static CommandResult store(
@@ -492,4 +490,6 @@ public interface Command {
   };
 
   Command TYA = (register, bus, addressMode) -> CommandResult.of(register.a(register.y()), 0);
+
+  CommandResult execute(Register register, CpuBus bus, AddressingModeFunction addressingMode);
 }
