@@ -8,6 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode
 class Register {
+  static final int STACK_POINTER_MASK = 0xFF;
+  static final int PROGRAM_COUNTER_MASK = 0xFFFF;
   static final int NEGATIVE_MASK = 0x80;
   static final int OVERFLOW_MASK = 0x40;
   private static final int UNUSED_MASK = 0x20;
@@ -20,8 +22,13 @@ class Register {
   private int a;
   private int x;
   private int y;
+
+  @Getter(AccessLevel.NONE)
   private int stackPointer;
+
+  @Getter(AccessLevel.NONE)
   private int programCounter;
+
   private int status;
 
   public Register(
@@ -79,8 +86,12 @@ class Register {
     }
   }
 
+  int programCounter() {
+    return programCounter & PROGRAM_COUNTER_MASK;
+  }
+
   int getAndIncrementProgramCounter() {
-    return programCounter++;
+    return programCounter++ & PROGRAM_COUNTER_MASK;
   }
 
   Register incrementProgramCounter() {
@@ -93,12 +104,21 @@ class Register {
     return this;
   }
 
+  int stackPointer() {
+    return stackPointer & STACK_POINTER_MASK;
+  }
+
   int getAndDecrementStackPointer() {
-    return stackPointer--;
+    return stackPointer-- & STACK_POINTER_MASK;
+  }
+
+  Register decrementStackPointer() {
+    --stackPointer;
+    return this;
   }
 
   int incrementAndGetStackPointer() {
-    return ++stackPointer;
+    return ++stackPointer & STACK_POINTER_MASK;
   }
 
   final Register negativeFlag(boolean negativeFlag) {

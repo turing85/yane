@@ -1,6 +1,7 @@
 package de.turing85.yane.impl.cpu6502;
 
 import static com.google.common.truth.Truth.*;
+import static de.turing85.yane.impl.cpu6502.Register.*;
 
 import org.junit.jupiter.api.*;
 
@@ -17,11 +18,11 @@ class RegisterTest {
       final Register register = new Register();
 
       // THEN
-      assertThat(register.a()).isEqualTo( 0);
-      assertThat(register.x()).isEqualTo( 0);
-      assertThat(register.y()).isEqualTo( 0);
-      assertThat(register.stackPointer()).isEqualTo( 0);
-      assertThat(register.programCounter()).isEqualTo( 0);
+      assertThat(register.a()).isEqualTo(0);
+      assertThat(register.x()).isEqualTo(0);
+      assertThat(register.y()).isEqualTo(0);
+      assertThat(register.stackPointer()).isEqualTo(0);
+      assertThat(register.programCounter()).isEqualTo(0);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isZeroFlagSet()).isEqualTo(false);
@@ -90,11 +91,11 @@ class RegisterTest {
     void setup() {
       defaultRegister = new Register();
       allSetRegister = new Register(
-           1,
-           2,
-           3,
-           4,
-           5,
+          1,
+          2,
+          3,
+          4,
+          5,
           true,
           true,
           true,
@@ -104,19 +105,72 @@ class RegisterTest {
           true);
     }
 
-    @Test
-    @DisplayName("should get and increment the program counter")
-    void shouldGetAndIncrementTheProgramCounter() {
-      // GIVEN
-      final int expectedProgramCounter = 1337;
-      final Register register = allSetRegister.programCounter(expectedProgramCounter);
+    @Nested
+    @DisplayName("Program counter tests")
+    class ProgramCounterTests {
+      @Test
+      @DisplayName("should get and increment the program counter")
+      void shouldGetAndIncrementTheProgramCounter() {
+        // GIVEN
+        final int initialProgramCounter = 1337;
+        final int expectedProgramCounter = 1338;
+        final Register register = defaultRegister.programCounter(initialProgramCounter);
 
-      // WHEN
-      final int actualProgramCounter = register.getAndIncrementProgramCounter();
+        // WHEN
+        final int actualProgramCounter = register.getAndIncrementProgramCounter();
 
-      // THEN
-      assertThat(actualProgramCounter).isEqualTo(expectedProgramCounter);
-      assertThat(register.programCounter()).isEqualTo(expectedProgramCounter + 1);
+        // THEN
+        assertThat(actualProgramCounter).isEqualTo(initialProgramCounter);
+        assertThat(register.programCounter()).isEqualTo(expectedProgramCounter);
+      }
+
+      @Test
+      @DisplayName("should return expected value when the program counter is mutated")
+      void shouldReturnExpectedValueWhenProgramCounterIsMutated() {
+        // GIVEN
+        final int expectedProgramCounter = 1337;
+        final Register register = defaultRegister;
+
+        // WHEN
+        Register actual = register.programCounter(expectedProgramCounter);
+
+        // THEN
+        assertThat(actual).isEqualTo(register);
+        assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
+      }
+
+      @Test
+      @DisplayName("should mask the program counter if it is too large")
+      void shouldGetMaskedProgramCounter() {
+        // GIVEN
+        final int programCounter = 0xF_ABCD;
+        final int expectedProgramCounter = 0xABCD;
+        final Register register = defaultRegister;
+
+        // WHEN
+        final Register actual = register.programCounter(programCounter);
+
+        // THEN
+        assertThat(actual).isEqualTo(register);
+        assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
+      }
+
+      @Test
+      @DisplayName("should wrap program counter during increment")
+      void shouldWrapProgramCounterDuringIncrement() {
+        // GIVEN
+        final int initialProgramCounter = 0xFF;
+        final int expectedIncrementedProgramCounter =
+            (initialProgramCounter + 1) & PROGRAM_COUNTER_MASK;
+        final Register register = defaultRegister.programCounter(initialProgramCounter);
+
+        // WHEN
+        final Register actual = register.incrementProgramCounter();
+
+        // THEN
+        assertThat(actual).isEqualTo(register);
+        assertThat(actual.programCounter()).isEqualTo(expectedIncrementedProgramCounter);
+      }
     }
 
     @Test
@@ -161,32 +215,100 @@ class RegisterTest {
       assertThat(actual.y()).isEqualTo(expectedY);
     }
 
-    @Test
-    @DisplayName("should return expected value when the stack pointer is mutated")
-    void shouldReturnExpectedValueWhenStackPointerIsMutated() {
-      // GIVEN
-      final int expectedStackPointer = 17;
+    @Nested
+    @DisplayName("Stack Pointer tests")
+    class StackPointerTests {
+      @Test
+      @DisplayName("should return expected value when the stack pointer is mutated")
+      void shouldReturnExpectedValueWhenStackPointerIsMutated() {
+        // GIVEN
+        final int expectedStackPointer = 17;
 
-      // WHEN
-      Register actual = defaultRegister.stackPointer(expectedStackPointer);
+        // WHEN
+        Register actual = defaultRegister.stackPointer(expectedStackPointer);
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.stackPointer()).isEqualTo(expectedStackPointer);
-    }
+        // THEN
+        assertThat(actual).isEqualTo(defaultRegister);
+        assertThat(actual.stackPointer()).isEqualTo(expectedStackPointer);
+      }
 
-    @Test
-    @DisplayName("should return expected value when the program counter is mutated")
-    void shouldReturnExpectedValueWhenProgramCounterIsMutated() {
-      // GIVEN
-      final int expectedProgramCounter = 1337;
+      @Test
+      @DisplayName("should increment and get the stack pointer")
+      void shouldIncrementAndGetTheStackPointer() {
+        // GIVEN
+        final int initialStackPointer = 17;
+        final int expectedStackPointer = 18;
+        final Register register = defaultRegister.stackPointer(initialStackPointer);
 
-      // WHEN
-      Register actual = defaultRegister.programCounter(expectedProgramCounter);
+        // WHEN
+        final int actualStackPointer = register.incrementAndGetStackPointer();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
+        // THEN
+        assertThat(actualStackPointer).isEqualTo(expectedStackPointer);
+      }
+
+      @Test
+      @DisplayName("should get and decrement the stack pointer")
+      void shouldGetAndDecrementTheStackPointer() {
+        // GIVEN
+        final int initialStackPointer = 17;
+        final int expectedStackPointer = 16;
+        final Register register = defaultRegister.stackPointer(initialStackPointer);
+
+        // WHEN
+        final int actualStackPointer = register.getAndDecrementStackPointer();
+
+        // THEN
+        assertThat(actualStackPointer).isEqualTo(initialStackPointer);
+        assertThat(register.stackPointer()).isEqualTo(expectedStackPointer);
+      }
+
+      @Test
+      @DisplayName("should mask the stack pointer if it is too large")
+      void shouldGetMaskedStackPointer() {
+        // GIVEN
+        final int programCounter = 0xF_AB;
+        final int expectedProgramCounter = 0xAB;
+        final Register register = defaultRegister;
+
+        // WHEN
+        final Register actualRegister = register.stackPointer(programCounter);
+
+        // THEN
+        assertThat(actualRegister).isEqualTo(register);
+        assertThat(actualRegister.stackPointer()).isEqualTo(expectedProgramCounter);
+      }
+
+      @Test
+      @DisplayName("should wrap stack pointer during increment")
+      void shouldWrapStackPointerDuringIncrement() {
+        // GIVEN
+        final int initialStackPointer = 0xFF;
+        final int expectedIncrementedStackPointer = 0x00;
+
+        // WHEN
+        final int actual = defaultRegister.stackPointer(initialStackPointer)
+            .incrementAndGetStackPointer();
+
+        // THEN
+        assertThat(actual).isEqualTo(expectedIncrementedStackPointer);
+      }
+
+      @Test
+      @DisplayName("should wrap stack pointer during decrement")
+      void shouldWrapStackPointerDuringDecrement() {
+        // GIVEN
+        final int initialStackPointer = 0x00;
+        final int expectedDecrementedStackPointer = 0xFF;
+        final Register register = defaultRegister.stackPointer(initialStackPointer);
+
+        // WHEN
+        final int actual = register.getAndDecrementStackPointer();
+
+        // THEN
+        assertThat(actual).isEqualTo(initialStackPointer);
+        assertThat(register.stackPointer()).isEqualTo(expectedDecrementedStackPointer);
+      }
     }
 
     @Test
