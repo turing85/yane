@@ -94,12 +94,6 @@ class AddressingMode implements AddressingModeFunction {
       },
       "X,ind");
 
-  static int readZeroPageAddressFromBus(int zeroPageAddress, CpuBus bus) {
-    final int addressLow = bus.read(zeroPageAddress & 0x00FF);
-    final int addressHigh = bus.read((zeroPageAddress + 1) & 0x00FF);
-    return ((addressHigh << 8) | addressLow) & 0xFFFF;
-  }
-
   static final AddressingMode INDIRECT_ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
@@ -173,5 +167,11 @@ class AddressingMode implements AddressingModeFunction {
     final int addressLow = bus.read(register.getAndIncrementProgramCounter());
     final int addressHigh = bus.read(register.getAndIncrementProgramCounter());
     return (addressHigh << 8) | (addressLow & 0xFF);
+  }
+
+  private static int readZeroPageAddressFromBus(int zeroPageAddress, CpuBus bus) {
+    final int addressLow = bus.read(zeroPageAddress & 0x00FF);
+    final int addressHigh = bus.read((zeroPageAddress + 1) & 0x00FF);
+    return ((addressHigh << 8) | addressLow) & 0xFFFF;
   }
 }
