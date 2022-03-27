@@ -10,14 +10,15 @@ import lombok.*;
 class Register {
   static final int STACK_POINTER_MASK = 0xFF;
   static final int PROGRAM_COUNTER_MASK = 0xFFFF;
+
   static final int NEGATIVE_MASK = 0x80;
   static final int OVERFLOW_MASK = 0x40;
-  private static final int UNUSED_MASK = 0x20;
-  private static final int BREAK_MASK = 0x10;
-  private static final int DECIMAL_MASK = 0x08;
-  private static final int INTERRUPT_MASK = 0x04;
-  private static final int ZERO_MASK = 0x02;
-  private static final int CARRY_MASK = 0x01;
+  static final int UNUSED_MASK = 0x20;
+  static final int BREAK_MASK = 0x10;
+  static final int DECIMAL_MASK = 0x08;
+  static final int INTERRUPT_MASK = 0x04;
+  static final int ZERO_MASK = 0x02;
+  static final int CARRY_MASK = 0x01;
 
   private int a;
   private int x;
