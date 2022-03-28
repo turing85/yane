@@ -23,7 +23,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         final int a = register.a();
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFFFF;
         return CommandResult.of(
@@ -42,7 +42,7 @@ class Command implements CommandFunction {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         final Register updatedRegister = addressResult.register();
         final int a = updatedRegister.a();
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int rawResult = a & value;
         final int result = rawResult & 0xFF;
         return CommandResult.of(
@@ -57,7 +57,7 @@ class Command implements CommandFunction {
   static Command ASL = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int rawResult = value << 1;
         final int result = rawResult & 0xFF;
         final int address = addressResult.address();
@@ -84,13 +84,13 @@ class Command implements CommandFunction {
 
   static Command BEQ = new Command(
       (register, bus, addressMode) ->
-          branch(addressMode, register, bus, register.zeroFlag()),
+          branch(addressMode, register, bus, register.isZeroFlagSet()),
       "BEQ");
 
   static Command BIT = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         return CommandResult.of(
             addressResult.register()
                 .negativeFlag(isNegative(value))
@@ -101,16 +101,16 @@ class Command implements CommandFunction {
       "BIT");
 
   static Command BMI = new Command(
-      (register, bus, addressMode) -> branch(addressMode, register, bus, register.negativeFlag()),
+      (register, bus, addressMode) -> branch(addressMode, register, bus, register.isNegativeFlagSet()),
       "BMI");
 
   static Command BNE = new Command(
-      (register, bus, addressMode) -> branch(addressMode, register, bus, !register.zeroFlag()),
+      (register, bus, addressMode) -> branch(addressMode, register, bus, !register.isZeroFlagSet()),
       "BNE");
 
   static Command BPL = new Command(
       (register, bus, addressMode) ->
-          branch(addressMode, register, bus, !register.negativeFlag()),
+          branch(addressMode, register, bus, !register.isNegativeFlagSet()),
       "BPL");
 
   static Command BRK = new Command(
@@ -181,7 +181,7 @@ class Command implements CommandFunction {
   static Command DEC = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int valueDecremented = (addressResult.readValueFromAddress() - 1) & 0xFF;
+        final int valueDecremented = (addressResult.value() - 1) & 0xFF;
         bus.write(addressResult.address(), valueDecremented);
         return CommandResult.of(
             addressResult.register()
@@ -203,7 +203,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         final Register updatedRegister = addressResult.register();
-        final int newA = updatedRegister.a() ^ addressResult.readValueFromAddress();
+        final int newA = updatedRegister.a() ^ addressResult.value();
         return CommandResult.of(
             updatedRegister
                 .a(newA)
@@ -216,7 +216,7 @@ class Command implements CommandFunction {
   static Command INC = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int newValue = (addressResult.readValueFromAddress() + 1) & 0xFF;
+        final int newValue = (addressResult.value() + 1) & 0xFF;
         bus.write(addressResult.address(), newValue);
         return CommandResult.of(
             addressResult.register()
@@ -258,7 +258,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressResult.readValueFromAddress(),
+            addressResult.value(),
             addressResult.register()::a,
             addressResult.additionalCyclesNeeded());
       },
@@ -268,7 +268,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressResult.readValueFromAddress(),
+            addressResult.value(),
             addressResult.register()::x,
             addressResult.additionalCyclesNeeded());
       },
@@ -278,7 +278,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         return loadIntoRegister(
-            addressResult.readValueFromAddress(),
+            addressResult.value(),
             addressResult.register()::y,
             addressResult.additionalCyclesNeeded());
       },
@@ -287,7 +287,7 @@ class Command implements CommandFunction {
   static Command LSR = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int result = (value >> 1) & 0xFF;
         final int address = addressResult.address();
         final Register updatedRegister =
@@ -309,7 +309,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         Register updatedRegister = addressResult.register();
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int result = value | updatedRegister.a();
         return CommandResult.of(
             updatedRegister
@@ -345,7 +345,7 @@ class Command implements CommandFunction {
   static Command ROL = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int rawResult = (value << 1) & ((value & 0x100) >> 4);
         final int result = rawResult & 0xFF;
         final int address = addressResult.address();
@@ -363,7 +363,7 @@ class Command implements CommandFunction {
   static Command ROR = new Command(
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
-        final int value = addressResult.readValueFromAddress();
+        final int value = addressResult.value();
         final int rawResult = (value >> 1) & ((value & 0x0001) << 4);
         final int result = rawResult & 0xFF;
         final int address = addressResult.address();
@@ -398,7 +398,7 @@ class Command implements CommandFunction {
       (register, bus, addressMode) -> {
         final AddressResult addressResult = addressMode.fetch(register, bus);
         final int a = register.a();
-        final int value = addressResult.readValueFromAddress() ^ 0x00FF;
+        final int value = addressResult.value() ^ 0x00FF;
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFF;
         return CommandResult.of(
@@ -487,7 +487,15 @@ class Command implements CommandFunction {
   }
 
   private static boolean hasOverflown(int lhs, int rhs, int result) {
-    return (~(lhs ^ rhs) & (lhs ^ result)) > 0;
+    return bytesHaveSameSign(lhs, rhs) && bytesHaveDifferentSign(lhs, result);
+  }
+
+  private static boolean bytesHaveSameSign(int lhs, int rhs) {
+    return !bytesHaveDifferentSign(lhs, rhs);
+  }
+
+  private static boolean bytesHaveDifferentSign(int lhs, int rhs) {
+    return ((lhs ^ rhs) & 0x80) > 0;
   }
 
   private static CommandResult branch(
@@ -547,7 +555,7 @@ class Command implements CommandFunction {
 
   private static CommandResult compare(AddressResult addressResult, int existingValue) {
     final Register updatedRegister = addressResult.register();
-    final int value = addressResult.readValueFromAddress();
+    final int value = addressResult.value();
     return CommandResult.of(
         updatedRegister
             .negativeFlag(isNegative(value))

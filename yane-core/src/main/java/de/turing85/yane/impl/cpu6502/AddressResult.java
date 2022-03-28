@@ -7,10 +7,7 @@ import lombok.*;
 class AddressResult {
   Register register;
   CpuBus bus;
+  int value;
   int address;
   int additionalCyclesNeeded;
-
-  int readValueFromAddress() {
-    return bus().read(address());
-  }
 }

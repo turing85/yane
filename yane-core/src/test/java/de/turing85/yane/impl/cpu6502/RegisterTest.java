@@ -25,12 +25,12 @@ class RegisterTest {
       assertThat(register.programCounter()).isEqualTo(0);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
       assertThat(register.isCarryFlagSet()).isEqualTo(false);
-      assertThat(register.zeroFlag()).isEqualTo(false);
+      assertThat(register.isZeroFlagSet()).isEqualTo(false);
       assertThat(register.isDisableIrqFlagSet()).isEqualTo(false);
       assertThat(register.isDecimalModeFlagSet()).isEqualTo(false);
       assertThat(register.isBreakFlagSet()).isEqualTo(false);
       assertThat(register.isOverflowFlagSet()).isEqualTo(false);
-      assertThat(register.negativeFlag()).isEqualTo(false);
+      assertThat(register.isNegativeFlagSet()).isEqualTo(false);
     }
 
     @Test
@@ -72,12 +72,12 @@ class RegisterTest {
       assertThat(register.stackPointer()).isEqualTo(expectedStackPointer);
       assertThat(register.programCounter()).isEqualTo(expectedProgramCounter);
       assertThat(register.isCarryFlagSet()).isEqualTo(expectedCarry);
-      assertThat(register.zeroFlag()).isEqualTo(expectedZero);
+      assertThat(register.isZeroFlagSet()).isEqualTo(expectedZero);
       assertThat(register.isDisableIrqFlagSet()).isEqualTo(expectedDisableInterrupt);
       assertThat(register.isDecimalModeFlagSet()).isEqualTo(expectedDecimalMode);
       assertThat(register.isBreakFlagSet()).isEqualTo(expectedBreakFlag);
       assertThat(register.isOverflowFlagSet()).isEqualTo(expectedOverflow);
-      assertThat(register.negativeFlag()).isEqualTo(expectedNegative);
+      assertThat(register.isNegativeFlagSet()).isEqualTo(expectedNegative);
     }
   }
 
@@ -341,7 +341,7 @@ class RegisterTest {
 
       // THEN
       assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.zeroFlag()).isTrue();
+      assertThat(actual.isZeroFlagSet()).isTrue();
     }
 
     @Test
@@ -352,7 +352,7 @@ class RegisterTest {
 
       // THEN
       assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.zeroFlag()).isFalse();
+      assertThat(actual.isZeroFlagSet()).isFalse();
     }
 
     @Test
@@ -451,7 +451,7 @@ class RegisterTest {
 
       // THEN
       assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.negativeFlag()).isTrue();
+      assertThat(actual.isNegativeFlagSet()).isTrue();
     }
 
     @Test
@@ -462,7 +462,7 @@ class RegisterTest {
 
       // THEN
       assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.negativeFlag()).isFalse();
+      assertThat(actual.isNegativeFlagSet()).isFalse();
     }
   }
 }
