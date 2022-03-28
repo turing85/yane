@@ -29,7 +29,7 @@ class AddressMode implements AddressModeFunction {
 
   static final AddressMode ABSOLUTE = new AddressMode(
       (register, bus) -> {
-        final int address = readAddressAtProgramPointerFromBus(register, bus);
+        final int address = readAddressAtProgramPointer(register, bus);
         return AddressResult.of(register, bus.read(address), address, 0);
       },
       "abs",
@@ -37,42 +37,26 @@ class AddressMode implements AddressModeFunction {
 
   static final AddressMode ABSOLUTE_X = new AddressMode(
       (register, bus) -> {
-        final int address = readAddressAtProgramPointerFromBus(register, bus);
-        final int addressHigh = (address >> 8) & 0xFF;
+        final int address = readAddressAtProgramPointer(register, bus);
         final int addressPlusX = (address + register.x()) & 0xFFFF;
-        final int addressPlusXHigh = addressPlusX >> 8;
-        final int additionalCyclesNeeded;
-        if (addressPlusXHigh != addressHigh) {
-          additionalCyclesNeeded = 1;
-        } else {
-          additionalCyclesNeeded = 0;
-        }
         return AddressResult.of(
             register,
             bus.read(addressPlusX),
             addressPlusX,
-            additionalCyclesNeeded);
+            highBytesDiffers(address, addressPlusX) ? 1 : 0);
       },
       "abs,X",
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
 
   static final AddressMode ABSOLUTE_Y = new AddressMode(
       (register, bus) -> {
-        final int address = readAddressAtProgramPointerFromBus(register, bus);
-        final int addressHigh = address >> 8;
+        final int address = readAddressAtProgramPointer(register, bus);
         final int addressPlusY = (address + register.y()) & 0xFFFF;
-        final int addressPlusYHigh = addressPlusY >> 8;
-        final int additionalCyclesNeeded;
-        if (addressPlusYHigh != addressHigh) {
-          additionalCyclesNeeded = 1;
-        } else {
-          additionalCyclesNeeded = 0;
-        }
         return AddressResult.of(
             register,
             bus.read(addressPlusY),
             addressPlusY,
-            additionalCyclesNeeded);
+            highBytesDiffers(address, addressPlusY) ? 1 : 0);
       },
       "abs,y",
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
@@ -92,17 +76,14 @@ class AddressMode implements AddressModeFunction {
 
   static final AddressMode INDIRECT = new AddressMode(
       (register, bus) -> {
-        final int indirect = readAddressAtProgramPointerFromBus(register, bus);
-        final int indirectLow = indirect & 0xFF;
-        final int addressLow = bus.read(indirect);
-        final int addressHigh;
-        if (indirectLow == 0xFF) {
-          // Hardware bug in 6502
-          addressHigh = bus.read(indirect & 0xFF00);
-        } else {
-          addressHigh = bus.read((indirect + 1) & 0xFFFF);
-        }
-        final int address = (addressHigh << 8) | addressLow;
+        final int addressForIndirectLow = readAddressAtProgramPointer(register, bus);
+        final int addressForIndirectHigh = lowestByteIsAllOnes(addressForIndirectLow)
+            // Hardware bug in 6502
+            ? addressForIndirectLow & 0xFF00
+            // normal behaviour
+            : (addressForIndirectLow + 1) & 0xFFFF;
+        final int address =
+            bus.read(addressForIndirectLow) | (bus.read(addressForIndirectHigh) << 8);
         return AddressResult.of(register, bus.read(address), address, 0);
       },
       "ind",
@@ -123,20 +104,12 @@ class AddressMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
         final int address = readAddressFromBus(zeroPageIndirectAddress, bus);
-        final int addressHigh = (address >> 8) & 0xFF;
         final int addressPlusY = (address + register.y()) & 0xFFFF;
-        final int addressPlusYHigh = (addressPlusY >> 8) & 0xFF;
-        final int additionalCyclesNeeded;
-        if (addressHigh != addressPlusYHigh) {
-          additionalCyclesNeeded = 1;
-        } else {
-          additionalCyclesNeeded = 0;
-        }
         return AddressResult.of(
             register,
             bus.read(addressPlusY),
             addressPlusY,
-            additionalCyclesNeeded);
+            highBytesDiffers(address, addressPlusY) ? 1 : 0);
       },
       "ind,Y",
       1);
@@ -198,10 +171,20 @@ class AddressMode implements AddressModeFunction {
     return mnemonic();
   }
 
-  private static int readAddressAtProgramPointerFromBus(Register register, CpuBus bus) {
+  private static int readAddressAtProgramPointer(Register register, CpuBus bus) {
     final int addressLow = bus.read(register.getAndIncrementProgramCounter());
     final int addressHigh = bus.read(register.getAndIncrementProgramCounter());
     return (addressHigh << 8) | addressLow;
+  }
+
+  private static boolean highBytesDiffers(int lhs, int rhs) {
+    final int addressHigh = lhs >> 8;
+    final int addressPlusXHigh = rhs >> 8;
+    return addressPlusXHigh != addressHigh;
+  }
+
+  private static boolean lowestByteIsAllOnes(int indirect) {
+    return (indirect & 0xFF) == 0xFF;
   }
 
   private static int readAddressFromBus(int zeroPageAddress, CpuBus bus) {
