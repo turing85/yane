@@ -25,7 +25,7 @@ class Command implements CommandFunction {
         final int a = register.a();
         final int value = addressResult.value();
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
-        final int result = rawResult & 0xFFFF;
+        final int result = rawResult & 0xFF;
         return CommandResult.of(
             register
                 .a(result)
