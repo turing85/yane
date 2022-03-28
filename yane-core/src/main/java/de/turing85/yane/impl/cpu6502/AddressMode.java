@@ -23,15 +23,14 @@ class AddressMode implements AddressModeFunction {
   private static final int ABSOLUTE_ADDRESSING_BYTES_TO_READ = 2;
 
   static final AddressMode ACCUMULATOR = new AddressMode(
-      (register, bus) ->
-          AddressResult.of(register, bus, register.a(), IMPLIED_LOADED_ADDRESS, 0),
+      (register, bus) -> AddressResult.of(register, register.a(), IMPLIED_LOADED_ADDRESS, 0),
       "A",
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
   static final AddressMode ABSOLUTE = new AddressMode(
       (register, bus) -> {
         final int address = readAddressAtProgramPointerFromBus(register, bus);
-        return AddressResult.of(register, bus, bus.read(address), address, 0);
+        return AddressResult.of(register, bus.read(address), address, 0);
       },
       "abs",
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
@@ -50,7 +49,6 @@ class AddressMode implements AddressModeFunction {
         }
         return AddressResult.of(
             register,
-            bus,
             bus.read(addressPlusX),
             addressPlusX,
             additionalCyclesNeeded);
@@ -72,7 +70,6 @@ class AddressMode implements AddressModeFunction {
         }
         return AddressResult.of(
             register,
-            bus,
             bus.read(addressPlusY),
             addressPlusY,
             additionalCyclesNeeded);
@@ -83,14 +80,13 @@ class AddressMode implements AddressModeFunction {
   static final AddressMode IMMEDIATE = new AddressMode(
       (register, bus) -> {
         final int address = register.getAndIncrementProgramCounter();
-        return AddressResult.of(register, bus, bus.read(address), address, 0);
+        return AddressResult.of(register, bus.read(address), address, 0);
       },
       "#",
       IMMEDIATE_ADDRESSING_BYTES_TO_READ);
 
   static final AddressMode IMPLIED = new AddressMode(
-      (register, bus) ->
-          AddressResult.of(register, bus, NOTHING_READ_VALUE , IMPLIED_LOADED_ADDRESS, 0),
+      (register, bus) -> AddressResult.of(register, NOTHING_READ_VALUE, IMPLIED_LOADED_ADDRESS, 0),
       "impl",
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
@@ -107,7 +103,7 @@ class AddressMode implements AddressModeFunction {
           addressHigh = bus.read((indirect + 1) & 0xFFFF);
         }
         final int address = (addressHigh << 8) | addressLow;
-        return AddressResult.of(register, bus, bus.read(address), address, 0);
+        return AddressResult.of(register, bus.read(address), address, 0);
       },
       "ind",
       2);
@@ -117,8 +113,8 @@ class AddressMode implements AddressModeFunction {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPagePlusXOffsetIndirectAddress =
             (zeroPageIndirectAddress + register.x()) & 0xFF;
-        final int address = readAddressFromBus(zeroPagePlusXOffsetIndirectAddress, bus);
-        return AddressResult.of(register, bus, bus.read(address), address, 0);
+        final int address = bus.read(zeroPagePlusXOffsetIndirectAddress);
+        return AddressResult.of(register, bus.read(address), address, 0);
       },
       "X,ind",
       1);
@@ -127,18 +123,17 @@ class AddressMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
         final int address = readAddressFromBus(zeroPageIndirectAddress, bus);
-        final int addressHigh = address >> 8;
+        final int addressHigh = (address >> 8) & 0xFF;
         final int addressPlusY = (address + register.y()) & 0xFFFF;
-        final int addressPlusYHigh = addressPlusY >> 8;
+        final int addressPlusYHigh = (addressPlusY >> 8) & 0xFF;
         final int additionalCyclesNeeded;
-        if (addressPlusYHigh != addressHigh) {
+        if (addressHigh != addressPlusYHigh) {
           additionalCyclesNeeded = 1;
         } else {
           additionalCyclesNeeded = 0;
         }
         return AddressResult.of(
             register,
-            bus,
             bus.read(addressPlusY),
             addressPlusY,
             additionalCyclesNeeded);
@@ -152,12 +147,12 @@ class AddressMode implements AddressModeFunction {
         final int relativeAddress = bus.read(programCounter);
         final int signedRelativeAddress;
         if ((relativeAddress & 0x80) > 0) {
-          signedRelativeAddress = relativeAddress | 0xFFFFFF00;
+          signedRelativeAddress = relativeAddress | 0xFF00;
         } else {
           signedRelativeAddress = relativeAddress;
         }
         final int address = (programCounter + signedRelativeAddress) & 0xFFFF;
-        return AddressResult.of(register, bus, bus.read(address), address, 0);
+        return AddressResult.of(register, bus.read(address), address, 0);
       },
       "rel",
       1);
@@ -165,7 +160,7 @@ class AddressMode implements AddressModeFunction {
   static final AddressMode ZERO_PAGE = new AddressMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
-        return AddressResult.of(register, bus,  bus.read(zeroPageAddress), zeroPageAddress, 0);
+        return AddressResult.of(register, bus.read(zeroPageAddress), zeroPageAddress, 0);
       },
       "zpg",
       1);
@@ -174,12 +169,7 @@ class AddressMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPageAddressPlusX = (zeroPageAddress + register.x()) & 0x00FF;
-        return AddressResult.of(
-            register,
-            bus,
-            bus.read(zeroPageAddressPlusX),
-            zeroPageAddressPlusX,
-            0);
+        return AddressResult.of(register, bus.read(zeroPageAddressPlusX), zeroPageAddressPlusX, 0);
       },
       "zpg,X",
       1);
@@ -188,19 +178,13 @@ class AddressMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPageAddressPlusY = (zeroPageAddress + register.y()) & 0x00FF;
-        return AddressResult.of(
-            register,
-            bus,
-            bus.read(zeroPageAddressPlusY),
-            zeroPageAddressPlusY,
-            0);
+        return AddressResult.of(register, bus.read(zeroPageAddressPlusY), zeroPageAddressPlusY, 0);
       },
       "zpg,Y",
       1);
 
   static final AddressMode UNKNOWN = new AddressMode(
-      (register, bus) ->
-          AddressResult.of(register, bus, NOTHING_READ_VALUE, UNKNOWN_LOADED_ADDRESS, 0),
+      (register, bus) -> AddressResult.of(register, NOTHING_READ_VALUE, UNKNOWN_LOADED_ADDRESS, 0),
       "???",
       UNKNOWN_ADDRESSING_BYTES_TO_READ);
 
