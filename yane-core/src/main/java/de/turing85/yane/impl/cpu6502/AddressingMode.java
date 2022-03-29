@@ -78,6 +78,23 @@ class AddressingMode implements AddressingModeFunction {
   private static final int ZERO_PAGE_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
+   * The actual implementation of the accessing mode.
+   */
+  @Delegate
+  AddressingModeFunction accessingModeFunction;
+
+  /**
+   * The mnemonic of the addressing mode.
+   */
+  String mnemonic;
+
+  /**
+   * How many bytes from the {@link Register#programCounter} are read and, in return, how often
+   * the {@link Register#programCounter} is incremented.
+   */
+  int bytesToRead;
+
+  /**
    * <p>Accumulator addressing mode.</p>
    *
    * <p>Loads the value of {@link Register#a}.</p>
@@ -455,7 +472,7 @@ class AddressingMode implements AddressingModeFunction {
    * of {@code zeroPageIndirectAddress} is interpreted as a 16-bit address by assuming that the 8
    * high bits are all set to 0, effectively forming a zero page address (hence the name). A second 
    * read is made to address {@code zeroPageIndirectAddress} ({@code address}). Then, the value of 
-   * {@link Register#y} is added to {@code address} ({@code addressPlusY}). This addition is done in 
+   * {@link Register#y} is added to {@code address} ({@code addressPlusY}). This addition is done in
    * the 8-bit domain, i.e. the result value is between {@code 0} and {@code 255}. Finally, a third 
    * read is made to {@code addressPlusY}, to determine the {@code value}.</p>
    *
@@ -711,11 +728,6 @@ class AddressingMode implements AddressingModeFunction {
       "???",
       UNKNOWN_ADDRESSING_BYTES_TO_READ);
 
-  @Delegate
-  AddressingModeFunction loadFunction;
-  String mnemonic;
-  int bytesToRead;
-
   /** {@inheritDoc} */
   @Override
   public String toString() {
@@ -769,8 +781,8 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Given a {@code address}, reads two 8-bit values from addresses {@code address} and
    * {@code address + 1} and returns it as one 16-bit address.</p>
    *
-   * The 1st read is interpreted as the lower 8 bits of the 16-bit address, while the 2nd read is
-   * interpreted as the higher 8 bits of the address.
+   * <p>The 1st read is interpreted as the lower 8 bits of the 16-bit address, while the 2nd read is
+   * interpreted as the higher 8 bits of the address.</p>
    *
    * @param address the address location
    * @param bus the bus to read from

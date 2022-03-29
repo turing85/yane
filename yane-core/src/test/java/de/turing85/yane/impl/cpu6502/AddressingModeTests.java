@@ -371,7 +371,7 @@ class AddressingModeTests {
       // GIVEN
       final int relativeAddress = 0x68;
       when(bus.read(0)).thenReturn(relativeAddress);
-      final int address = (relativeAddress) & 0xFFFF;
+      final int address = (relativeAddress + 1) & 0xFFFF;
       final int expectedValue = 0x13;
       when(bus.read(address)).thenReturn(expectedValue);
 
@@ -391,7 +391,7 @@ class AddressingModeTests {
       // GIVEN
       final int relativeAddress = -37;
       when(bus.read(0)).thenReturn(relativeAddress);
-      final int address = (relativeAddress) & 0xFFFF;
+      final int address = (relativeAddress + 1) & 0xFFFF;
       final int expectedValue = 0x13;
       when(bus.read(address)).thenReturn(expectedValue);
 
