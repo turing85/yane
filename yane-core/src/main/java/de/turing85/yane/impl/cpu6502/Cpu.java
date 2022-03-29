@@ -18,7 +18,7 @@ public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
   private int cycles;
 
   public Cpu(CpuBus bus, Clock clock) {
-    this(bus, clock, new Register(), (short) 0, 0);
+    this(bus, clock, new Register(), 0, 0);
     reset();
   }
 
