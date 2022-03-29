@@ -78,9 +78,9 @@ class AddressingMode implements AddressingModeFunction {
   private static final int ZERO_PAGE_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
-   * Accumulator addressing mode.
+   * <p>Accumulator addressing mode.</p>
    *
-   * <p>Loads the value of {@link Register#a}.
+   * <p>Loads the value of {@link Register#a}.</p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -110,14 +110,14 @@ class AddressingMode implements AddressingModeFunction {
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
   /**
-   * Absolute addressing mode.
+   * <p>Absolute addressing mode.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code PC_LOW}) and {@link
-   * Register#programCounter}{@code + 1} ({@code PC_HIGH}). Then constructs a 16-bit address by
+   * Register#programCounter}{@code + 1} ({@code PC_HIGH}). Then a 16-bit address is constructed by
    * using {@code PC_LOW} as the 8 lower bits and {@code PC_HIGH} as the 8 higher bits.</p>
    *
-   * <p>The {@code value} of is then read from the {@code address}.
+   * <p>The {@code value} of is then read from the {@code address}.</p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -150,16 +150,19 @@ class AddressingMode implements AddressingModeFunction {
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
 
   /**
-   * Absolute addressing mode with X register offset.
+   * <p>Absolute addressing mode with X register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
-   * Register#programCounter}{@code + 1} ({@code addressHigh}). Then constructs a 16-bit address
+   * Register#programCounter}{@code + 1} ({@code addressHigh}). Then a 16-bit address is constructed
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#x} is added
-   * to {@code address}. We will call this address {@code addressPlusX}.
+   * to {@code address}. We will call this address {@code addressPlusX}.</p>
    *
-   * <p>The {@code value} of is then read from the {@code addressPlusX}.
+   * <p>The {@code value} of is then read from the {@code addressPlusX}.</p>
+   *
+   * <p>This addressing modes needs one additional cycle, if the high 8 bits of {@code address} and
+   * {@code addressPlusX} differ, i.e. if a page boundary is crossed.</p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -204,16 +207,19 @@ class AddressingMode implements AddressingModeFunction {
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
 
   /**
-   * Absolute addressing mode with Y register offset.
+   * <p>Absolute addressing mode with Y register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
-   * Register#programCounter}{@code + 1} ({@code addressHigh}). Then constructs a 16-bit address
+   * Register#programCounter}{@code + 1} ({@code addressHigh}). Then a 16-bit address is constructed
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#y} is added
-   * to {@code address}. We will call this address {@code addressPlusY}.
+   * to {@code address}. We will call this address {@code addressPlusY}.</p>
    *
-   * <p>The {@code value} of is then read from the {@code addressPlusY}.
+   * <p>The {@code value} of is then read from the {@code addressPlusY}.</p>
+   *
+   * <p>This addressing modes needs one additional cycle, if the high 8 bits of {@code address} and
+   * {@code addressPlusY} differ, i.e. if a page boundary is crossed.</p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -257,6 +263,34 @@ class AddressingMode implements AddressingModeFunction {
       "abs,y",
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Immediate addressing mode.</p>
+   *
+   * <p>The next byte at {@link Register#programCounter} is read, and the
+   * {@link Register#programCounter} is incremented by one.</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code #}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>the {@code programCounter}-value, before the increment</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>value, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode IMMEDIATE = new AddressingMode(
       (register, bus) -> {
         final int address = register.getAndIncrementProgramCounter();
@@ -265,38 +299,210 @@ class AddressingMode implements AddressingModeFunction {
       "#",
       IMMEDIATE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Implied addressing mode.</p>
+   *
+   * <p>Since the data is implied by the command, no data is read.</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code impl}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@link #IMPLIED_LOADED_ADDRESS}, marker value</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@link #NOTHING_READ_VALUE}, marker value</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 0}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode IMPLIED = new AddressingMode(
       (register, bus) ->
           new AddressingResult(register, bus, IMPLIED_LOADED_ADDRESS, NOTHING_READ_VALUE),
       "impl",
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Indirect addressing mode.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}({@code indirectAddressLow}) and {@link
+   * Register#programCounter}{@code + 1} ({@code indirectAddressHigh}). Then a 16-bit address is
+   * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
+   * higher bits. We will call this address {@code indirectAddress}. A third and fourth read is made
+   * to addresses {@code indirectAddress} and {@code indirectAddress + 1}, again interpreting the 
+   * two 8-bit values as 16-bit address. We will call this address {@code address}. Finally, the 
+   * value from {@code address} is read in a fifth read.</p>
+   *
+   * <p>There is a hardware bug in the 6502 processor: if the lower 8 bits of {@code
+   * indirectAddress} are all set to {@code 1}, then, {@code addressHigh} is not read from
+   * {@code indirectAddress + 1}, but from {@code ((indirectLow + 1) & 0x00FF) |
+   * (indirectHigh << 8)}.So for example, when {@code indirectAddress} has value {@code 0x01FF},
+   * then {@code addressLow} should be read from {@code 0x0200}. Instead, through this bus, it is
+   * read from {@code 0x0100} (not changing the higher 8 bits).</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code ind}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code address}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 2}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode INDIRECT = new AddressingMode(
       (register, bus) -> {
-        final int addressForIndirectLow = readAddressAtProgramPointer(register, bus);
-        final int addressForIndirectHigh = lowestByteIsAllOnes(addressForIndirectLow)
+        final int addressLow = readAddressAtProgramPointer(register, bus);
+        final int addressHigh = lowestByteIsAllOnes(addressLow)
             // Hardware bug in 6502
-            ? addressForIndirectLow & 0xFF00
+            ? addressLow & 0xFF00
             // normal behaviour
-            : (addressForIndirectLow + 1) & 0xFFFF;
+            : (addressLow + 1) & 0xFFFF;
         final int address =
-            bus.read(addressForIndirectLow) | (bus.read(addressForIndirectHigh) << 8);
+            bus.read(addressLow) | (bus.read(addressHigh) << 8);
         return new AddressingResult(register, bus, address, bus.read(address));
       },
       "ind",
       2);
 
+  /**
+   * <p>Indirect zero page addressing mode with X register offset.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}({@code zeroPageIndirectAddress}). Then, the value
+   * of {@link Register#x} is added to {@code zeroPageAddress} ({@code
+   * zeroPageIndirectAddressPlusX}). This addition is done in the 8-bit domain, i.e. the
+   * result value is between {@code 0} and {@code 255}. The 8-bit value of {@code
+   * zeroPageIndirectAddressPlusX} is interpreted as a 16-bit address by assuming that the 8 high
+   * bit are all set to 0, effectively forming a zero page address (hence the name). A second read 
+   * is made to address {@code zeroPageIndirectAddressPlusX}. We will call this value 
+   * {@code address}. Again, {@code address} is interpreted as a zero page address. Finally, a
+   * third read is made to {@code address}, to determine the {@code value}.</p>
+   *
+   * <p>Please note that the behaviour of this addressing mode differs from addressing mode
+   * {@link #INDIRECT_ZERO_PAGE_Y}:</p>
+   *
+   * <ul>
+   *   <li>This method adds {@link Register#x} to the <strong>indirect address</strong>, while</li>
+   *   <li>
+   *     {@link #INDIRECT_ZERO_PAGE_Y} adds {@link Register#y} to the <strong>address</strong>
+   *   </li>
+   * </ul>
+   *
+   * <p>The difference in behaviour is intended and not a bug.</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code X,ind}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code address}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode INDIRECT_ZERO_PAGE_X = new AddressingMode(
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
-        final int zeroPagePlusXOffsetIndirectAddress =
+        final int zeroPageIndirectAddressPlusX =
             (zeroPageIndirectAddress + register.x()) & 0xFF;
-        final int address = bus.read(zeroPagePlusXOffsetIndirectAddress);
+        final int address = bus.read(zeroPageIndirectAddressPlusX);
         return new AddressingResult(register, bus, address, bus.read(address));
       },
       "X,ind",
       1);
 
+  /**
+   * <p>Indirect zero page addressing mode with Y register offset.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}({@code zeroPageIndirectAddress}).The 8-bit value
+   * of {@code zeroPageIndirectAddress} is interpreted as a 16-bit address by assuming that the 8
+   * high bits are all set to 0, effectively forming a zero page address (hence the name). A second 
+   * read is made to address {@code zeroPageIndirectAddress} ({@code address}). Then, the value of 
+   * {@link Register#y} is added to {@code address} ({@code addressPlusY}). This addition is done in 
+   * the 8-bit domain, i.e. the result value is between {@code 0} and {@code 255}. Finally, a third 
+   * read is made to {@code addressPlusY}, to determine the {@code value}.</p>
+   *
+   * <p>This addressing modes needs one additional cycle, if the high 8 bits of {@code address} and
+   * {@code addressPlusY} differ, i.e. if a page boundary is crossed.</p>
+   *
+   * <p>Please note that this addressing mode behaves differently than
+   * {@link #INDIRECT_ZERO_PAGE_X}:</p>
+   *
+   * <ul>
+   *   <li>This method adds {@link Register#y} to the <strong>address</strong>, while</li>
+   *   <li>
+   *     {@link #INDIRECT_ZERO_PAGE_X} adds {@link Register#x} to the <strong>indirect
+   *     address</strong>
+   *   </li>
+   * </ul>
+   *
+   * <p>The difference in behaviour is intended and not a bug.</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code ind,Y}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code addressPlusY}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td>
+   *     <td>
+   *       {@code 1}, if {@code address} and {@code addressPlusY} reside in different memory pages,
+   *       i.e. if the high byte of {@code address} and the high byte of {@code addressPlusY} are
+   *       not equal.
+   *       <br>{@code 0} otherwise.
+   *     </td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode INDIRECT_ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
@@ -312,22 +518,89 @@ class AddressingMode implements AddressingModeFunction {
       "ind,Y",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Relative addressing mode.</p>
+   *
+   * <p>This addressing mode is only used by branching instructions to determine the jump target
+   * address. To construct the {@code address}, the address at {@link Register#programCounter} is
+   * read, the {@link Register#programCounter} is incremented by {@code 1}. We will call this
+   * value {@code relativeAddress}. It is interpreted as 8-bit singed value, i.e. its value is
+   * between {@code -128} and {@code 127}. Then, {@code address} is constructed by adding the
+   * (incremented) value of {@link Register#programCounter} to {@code relativeAddress}. Finally,
+   * the {@code value} is read from {@code address}.</p>
+   *
+   * <p>Notice that the addressing mode does not execute the jump. It only calculates the jump
+   * address.</p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code rel}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code address}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode RELATIVE = new AddressingMode(
       (register, bus) -> {
-        final int programCounter = register.getAndIncrementProgramCounter();
-        final int relativeAddress = bus.read(programCounter);
+        final int relativeAddress = bus.read(register.getAndIncrementProgramCounter());
         final int signedRelativeAddress;
         if ((relativeAddress & 0x80) > 0) {
           signedRelativeAddress = relativeAddress | 0xFF00;
         } else {
           signedRelativeAddress = relativeAddress;
         }
-        final int address = (programCounter + signedRelativeAddress) & 0xFFFF;
+        final int address = (register.programCounter() + signedRelativeAddress) & 0xFFFF;
         return new AddressingResult(register, bus, address, bus.read(address));
       },
       "rel",
       RELATIVE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Zero page addressing mode.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}.We will call this value {@code zeroPageAddress}. 
+   * The 8-bit value of {@code zeroPageAddress} is interpreted as a 16-bit address by assuming that 
+   * the 8 high bits are all set to 0, effectively forming a zero page address (hence the name). A 
+   * second read is made to {@code zeroPageAddress}, to determine the {@code value}.</p>
+   * <p></p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code zpg}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code zeroPageAddress}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode ZERO_PAGE = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
@@ -336,6 +609,41 @@ class AddressingMode implements AddressingModeFunction {
       "zpg",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Zero page addressing mode with X register offset.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}.We will call this value {@code zeroPageAddress}.
+   * Second, the value of {@link Register#x} is added to {@code address}. We will call this value
+   * {@code zeroPageAddressPlusX}. This addition is done in the 8-bit domain, i.e. the result value 
+   * is between {@code 0} and {@code 255}. The 8-bit value of {@code zeroPageAddressPlusX} is 
+   * interpreted as a 16-bit address by assuming that the 8 high bits are all set to 0, effectively 
+   * forming a zero page address (hence the name). A second read is made to 
+   * {@code zeroPageAddressPlusX} to determine the {@code value}.</p>
+   * <p></p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code zpg,X}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code zeroPageAddressPlusX}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */
   static final AddressingMode ZERO_PAGE_X = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
@@ -349,6 +657,41 @@ class AddressingMode implements AddressingModeFunction {
       "zpg,X",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * <p>Zero page addressing mode with Y register offset.</p>
+   *
+   * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
+   * at addresses {@link Register#programCounter}.We will call this value {@code zeroPageAddress}.
+   * Second, the value of {@link Register#y} is added to {@code address}. We will call this value
+   * {@code zeroPageAddressPlusY}. This addition is done in the 8-bit domain, i.e. the result value 
+   * is between {@code 0} and {@code 255}. The 8-bit value of {@code zeroPageAddressPlusY} is 
+   * interpreted as a 16-bit address by assuming that the 8 high bits are all set to 0, effectively 
+   * forming a zero page address (hence the name). A second read is made to 
+   * {@code zeroPageAddressPlusY} to determine the {@code value}.</p>
+   * <p></p>
+   *
+   * <table border="1">
+   *   <caption>behavioural summary</caption>
+   *   <tr>
+   *     <th>description</th> <th>value</th>
+   *   </tr>
+   *   <tr>
+   *     <td>mnemonic</td> <td>{@code zpg,Y}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>address</td> <td>{@code zeroPageAddressPlusY}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>value</td> <td>{@code value}, as described above</td>
+   *   </tr>
+   *   <tr>
+   *     <td>program counter increased by</td> <td>{@code 1}</td>
+   *   </tr>
+   *   <tr>
+   *     <td>additional cycle needed</td> <td>never</td>
+   *   </tr>
+   * </table>
+   */  
   static final AddressingMode ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
@@ -379,25 +722,63 @@ class AddressingMode implements AddressingModeFunction {
     return mnemonic();
   }
 
+  /**
+   * <p>Reads two 8-bit values at {@link Register#programCounter} and
+   * {@link Register#programCounter} {@code + 1}, interpreting them as 16-bit address.</p>
+   *
+   * <p>In the process, the {@link Register#programCounter} is incremented twice.</p>
+   *
+   * <p>The first read is interpreted as the lower 8 bits of the address, the second read is
+   * interpreted as the higher 8 bits of the address.</p>
+   *
+   * @param register the register to get the program counter from. Notice that the register will be
+   *        mutated, i.e. the program counter will be increased by 2
+   * @param bus the bus to read the data from
+   * @return the 16-bit address, as described above
+   */
   private static int readAddressAtProgramPointer(Register register, CpuBus bus) {
     final int addressLow = bus.read(register.getAndIncrementProgramCounter());
     final int addressHigh = bus.read(register.getAndIncrementProgramCounter());
     return (addressHigh << 8) | addressLow;
   }
 
+  /**
+   * Checks whether the parameters differ in the higher 3 bytes.
+   *
+   * @param lhs the first parameter
+   * @param rhs the second parameter
+   * @return {@code true}, iff. {@code lhs} and {@code rhs} differ in the higher 3 bytes.
+   */
   private static boolean highBytesDiffers(int lhs, int rhs) {
     final int addressHigh = lhs >> 8;
     final int addressPlusXHigh = rhs >> 8;
     return addressPlusXHigh != addressHigh;
   }
 
-  private static boolean lowestByteIsAllOnes(int indirect) {
-    return (indirect & 0xFF) == 0xFF;
+  /**
+   * Checks whether the lowest byte contains only {@code 1}s.
+   *
+   * @param value the value to check
+   * @return {@code true}, iff. the lower byte contains only {@code 1}s.
+   */
+  private static boolean lowestByteIsAllOnes(int value) {
+    return (value & 0xFF) == 0xFF;
   }
 
-  private static int readAddressFromBus(int zeroPageAddress, CpuBus bus) {
-    final int addressLow = bus.read(zeroPageAddress);
-    final int addressHigh = bus.read((zeroPageAddress + 1) & 0x00FF);
+  /**
+   * <p>Given a {@code address}, reads two 8-bit values from addresses {@code address} and
+   * {@code address + 1} and returns it as one 16-bit address.</p>
+   *
+   * The 1st read is interpreted as the lower 8 bits of the 16-bit address, while the 2nd read is
+   * interpreted as the higher 8 bits of the address.
+   *
+   * @param address the address location
+   * @param bus the bus to read from
+   * @return the values of the two 8-bit reads, as 16-bit address
+   */
+  private static int readAddressFromBus(int address, CpuBus bus) {
+    final int addressLow = bus.read(address);
+    final int addressHigh = bus.read((address + 1) & 0x00FF);
     return (addressHigh << 8) | addressLow;
   }
 }
