@@ -117,7 +117,7 @@
             <!--suppress MavenModelInspection -->
             <skip>${skipTests}</skip>
             <encoding>UTF-8</encoding>
-            <configLocation>checkstyle.xml</configLocation>
+            <configLocation>../checkstyle.xml</configLocation>
             <failsOnError>true</failsOnError>
             <failOnViolation>true</failOnViolation>
             <violationSeverity>warning</violationSeverity>
@@ -223,6 +223,15 @@
           <configuration>
             <show>private</show>
           </configuration>
+          <executions>
+            <execution>
+              <id>javadoc</id>
+              <goals>
+                <goal>javadoc</goal>
+              </goals>
+              <phase>package</phase>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -230,12 +239,34 @@
 
   <profiles>
     <profile>
+      <id>checkstyle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>coverage</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>doc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
           </plugin>
         </plugins>
       </build>
