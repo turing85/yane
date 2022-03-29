@@ -20,7 +20,7 @@ import lombok.experimental.Delegate;
 @EqualsAndHashCode
 @Getter(AccessLevel.PACKAGE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-class AddressingMode implements AddressModeFunction {
+class AddressingMode implements AddressingModeFunction {
   /**
    * Since the {@link #IMPLIED} addressing mode does not read from any address (in fact, it does
    * not read anything since the data is implied in the command itself, e.g. {@link Command#TAX},
@@ -105,7 +105,7 @@ class AddressingMode implements AddressModeFunction {
    * </table>
    */
   static final AddressingMode ACCUMULATOR = new AddressingMode(
-      (register, bus) -> new AddressingResult(register, IMPLIED_LOADED_ADDRESS, register.a()),
+      (register, bus) -> new AddressingResult(register, bus, IMPLIED_LOADED_ADDRESS, register.a()),
       "A",
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
@@ -144,7 +144,7 @@ class AddressingMode implements AddressModeFunction {
   static final AddressingMode ABSOLUTE = new AddressingMode(
       (register, bus) -> {
         final int address = readAddressAtProgramPointer(register, bus);
-        return new AddressingResult(register, address, bus.read(address));
+        return new AddressingResult(register, bus, address, bus.read(address));
       },
       "abs",
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
@@ -195,7 +195,9 @@ class AddressingMode implements AddressModeFunction {
         final int addressPlusX = (address + register.x()) & 0xFFFF;
         return new AddressingResult(
             register,
-            addressPlusX, bus.read(addressPlusX),
+            bus,
+            addressPlusX,
+            bus.read(addressPlusX),
             highBytesDiffers(address, addressPlusX) ? 1 : 0);
       },
       "abs,X",
@@ -247,7 +249,9 @@ class AddressingMode implements AddressModeFunction {
         final int addressPlusY = (address + register.y()) & 0xFFFF;
         return new AddressingResult(
             register,
-            addressPlusY, bus.read(addressPlusY),
+            bus,
+            addressPlusY,
+            bus.read(addressPlusY),
             highBytesDiffers(address, addressPlusY) ? 1 : 0);
       },
       "abs,y",
@@ -256,14 +260,14 @@ class AddressingMode implements AddressModeFunction {
   static final AddressingMode IMMEDIATE = new AddressingMode(
       (register, bus) -> {
         final int address = register.getAndIncrementProgramCounter();
-        return new AddressingResult(register, address, bus.read(address));
+        return new AddressingResult(register, bus, address, bus.read(address));
       },
       "#",
       IMMEDIATE_ADDRESSING_BYTES_TO_READ);
 
   static final AddressingMode IMPLIED = new AddressingMode(
       (register, bus) ->
-          new AddressingResult(register, IMPLIED_LOADED_ADDRESS, NOTHING_READ_VALUE),
+          new AddressingResult(register, bus, IMPLIED_LOADED_ADDRESS, NOTHING_READ_VALUE),
       "impl",
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
@@ -277,7 +281,7 @@ class AddressingMode implements AddressModeFunction {
             : (addressForIndirectLow + 1) & 0xFFFF;
         final int address =
             bus.read(addressForIndirectLow) | (bus.read(addressForIndirectHigh) << 8);
-        return new AddressingResult(register, address, bus.read(address));
+        return new AddressingResult(register, bus, address, bus.read(address));
       },
       "ind",
       2);
@@ -288,7 +292,7 @@ class AddressingMode implements AddressModeFunction {
         final int zeroPagePlusXOffsetIndirectAddress =
             (zeroPageIndirectAddress + register.x()) & 0xFF;
         final int address = bus.read(zeroPagePlusXOffsetIndirectAddress);
-        return new AddressingResult(register, address, bus.read(address));
+        return new AddressingResult(register, bus, address, bus.read(address));
       },
       "X,ind",
       1);
@@ -300,7 +304,9 @@ class AddressingMode implements AddressModeFunction {
         final int addressPlusY = (address + register.y()) & 0xFFFF;
         return new AddressingResult(
             register,
-            addressPlusY, bus.read(addressPlusY),
+            bus,
+            addressPlusY,
+            bus.read(addressPlusY),
             highBytesDiffers(address, addressPlusY) ? 1 : 0);
       },
       "ind,Y",
@@ -317,7 +323,7 @@ class AddressingMode implements AddressModeFunction {
           signedRelativeAddress = relativeAddress;
         }
         final int address = (programCounter + signedRelativeAddress) & 0xFFFF;
-        return new AddressingResult(register, address, bus.read(address));
+        return new AddressingResult(register, bus, address, bus.read(address));
       },
       "rel",
       RELATIVE_ADDRESSING_BYTES_TO_READ);
@@ -325,7 +331,7 @@ class AddressingMode implements AddressModeFunction {
   static final AddressingMode ZERO_PAGE = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
-        return new AddressingResult(register, zeroPageAddress, bus.read(zeroPageAddress));
+        return new AddressingResult(register, bus, zeroPageAddress, bus.read(zeroPageAddress));
       },
       "zpg",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
@@ -334,7 +340,11 @@ class AddressingMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPageAddressPlusX = (zeroPageAddress + register.x()) & 0x00FF;
-        return new AddressingResult(register, zeroPageAddressPlusX, bus.read(zeroPageAddressPlusX));
+        return new AddressingResult(
+            register,
+            bus,
+            zeroPageAddressPlusX,
+            bus.read(zeroPageAddressPlusX));
       },
       "zpg,X",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
@@ -343,18 +353,23 @@ class AddressingMode implements AddressModeFunction {
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPageAddressPlusY = (zeroPageAddress + register.y()) & 0x00FF;
-        return new AddressingResult(register, zeroPageAddressPlusY, bus.read(zeroPageAddressPlusY));
+        return new AddressingResult(
+            register,
+            bus,
+            zeroPageAddressPlusY,
+            bus.read(zeroPageAddressPlusY));
       },
       "zpg,Y",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
 
   static final AddressingMode UNKNOWN = new AddressingMode(
-      (register, bus) -> new AddressingResult(register, UNKNOWN_LOADED_ADDRESS, NOTHING_READ_VALUE),
+      (register, bus) ->
+          new AddressingResult(register, bus, UNKNOWN_LOADED_ADDRESS, NOTHING_READ_VALUE),
       "???",
       UNKNOWN_ADDRESSING_BYTES_TO_READ);
 
   @Delegate
-  AddressModeFunction loadFunction;
+  AddressingModeFunction loadFunction;
   String mnemonic;
   int bytesToRead;
 
