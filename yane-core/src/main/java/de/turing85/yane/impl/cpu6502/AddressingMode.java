@@ -113,7 +113,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Absolute addressing mode.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code PC_LOW}) and {@link
+   * at addresses {@link Register#programCounter} ({@code PC_LOW}) and {@link
    * Register#programCounter}{@code + 1} ({@code PC_HIGH}). Then a 16-bit address is constructed by
    * using {@code PC_LOW} as the 8 lower bits and {@code PC_HIGH} as the 8 higher bits.</p>
    *
@@ -153,7 +153,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Absolute addressing mode with X register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
+   * at addresses {@link Register#programCounter} ({@code addressLow}) and {@link
    * Register#programCounter}{@code + 1} ({@code addressHigh}). Then a 16-bit address is constructed
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#x} is added
@@ -210,7 +210,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Absolute addressing mode with Y register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
+   * at addresses {@link Register#programCounter} ({@code addressLow}) and {@link
    * Register#programCounter}{@code + 1} ({@code addressHigh}). Then a 16-bit address is constructed
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#y} is added
@@ -336,7 +336,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Indirect addressing mode.</p>
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code indirectAddressLow}) and {@link
+   * at addresses {@link Register#programCounter} ({@code indirectAddressLow}) and {@link
    * Register#programCounter}{@code + 1} ({@code indirectAddressHigh}). Then a 16-bit address is
    * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
    * higher bits. We will call this address {@code indirectAddress}. A third and fourth read is made
@@ -392,7 +392,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Indirect zero page addressing mode with X register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code zeroPageIndirectAddress}). Then, the value
+   * at addresses {@link Register#programCounter} ({@code zeroPageIndirectAddress}). Then, the value
    * of {@link Register#x} is added to {@code zeroPageAddress} ({@code
    * zeroPageIndirectAddressPlusX}). This addition is done in the 8-bit domain, i.e. the
    * result value is between {@code 0} and {@code 255}. The 8-bit value of {@code
@@ -451,7 +451,7 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Indirect zero page addressing mode with Y register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads one 8-bit values from the {@link CpuBus}
-   * at addresses {@link Register#programCounter}({@code zeroPageIndirectAddress}).The 8-bit value
+   * at addresses {@link Register#programCounter} ({@code zeroPageIndirectAddress}).The 8-bit value
    * of {@code zeroPageIndirectAddress} is interpreted as a 16-bit address by assuming that the 8
    * high bits are all set to 0, effectively forming a zero page address (hence the name). A second 
    * read is made to address {@code zeroPageIndirectAddress} ({@code address}). Then, the value of 
