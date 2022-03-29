@@ -15,7 +15,7 @@ class Instruction implements de.turing85.yane.api.Instruction {
 
   static {
     INSTRUCTIONS = Set.of(
-        Instruction.of(Command.BRK, AddressingMode.IMPLIED, (byte) 0x00,7),
+        Instruction.of(Command.BRK, AddressingMode.IMPLIED, (byte) 0x00, 7),
         Instruction.of(Command.ORA, AddressingMode.INDIRECT_ZERO_PAGE_X, (byte) 0x01,  2),
         Instruction.unknownInstruction((byte) 0x02),
         Instruction.unknownInstruction((byte) 0x03),

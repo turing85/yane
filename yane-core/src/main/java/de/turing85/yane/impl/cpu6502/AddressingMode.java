@@ -22,67 +22,67 @@ import lombok.experimental.Delegate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class AddressingMode implements AddressModeFunction {
   /**
-   * <p>Since the {@link #IMPLIED} addressing mode does not read from any address (in fact, it does
+   * Since the {@link #IMPLIED} addressing mode does not read from any address (in fact, it does
    * not read anything since the data is implied in the command itself, e.g. {@link Command#TAX},
    * which transfers the data of {@link Register#a} into {@link Register#x}), this value is set to
-   * {@link AddressingResult#address}. This indicates that the address should not be read.</p>
+   * {@link AddressingResult#address}. This indicates that the address should not be read.
    */
   static int IMPLIED_LOADED_ADDRESS = Integer.MIN_VALUE;
   /**
-   * <p>Only used by pseudo-{@link Instruction}s with illegal opcodes.</p>
+   * Only used by pseudo-{@link Instruction}s with illegal opcodes.
    */
   static int UNKNOWN_LOADED_ADDRESS = Integer.MIN_VALUE;
 
   /**
-   * <p>The {@link #IMPLIED} and {@link #UNKNOWN} addressing modes do not read any data, thus {@link
-   * AddressingResult#value} is set to this value, indicating that no data has been read.</p>
+   * The {@link #IMPLIED} and {@link #UNKNOWN} addressing modes do not read any data, thus {@link
+   * AddressingResult#value} is set to this value, indicating that no data has been read.
    */
   static int NOTHING_READ_VALUE = Integer.MIN_VALUE;
 
   /**
-   * <p>Number of bytes read by the {@link #IMPLIED} addressing mode.</p>
+   * Number of bytes read by the {@link #IMPLIED} addressing mode.
    */
   private static final int IMPLIED_ADDRESSING_BYTES_TO_READ = 0;
 
   /**
-   * <p>Number of bytes read by the {@link #UNKNOWN} addressing mode.</p>
+   * Number of bytes read by the {@link #UNKNOWN} addressing mode.
    */
   private static final int UNKNOWN_ADDRESSING_BYTES_TO_READ = 0;
 
   /**
-   * <p>Number of bytes read by the {@link #IMMEDIATE} addressing mode.</p>
+   * Number of bytes read by the {@link #IMMEDIATE} addressing mode.
    */
   private static final int IMMEDIATE_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
-   * <p>Number of bytes read by the {@link #INDIRECT} addressing mode.<p>
+   * Number of bytes read by the {@link #INDIRECT} addressing mode.
    */
   private static final int INDIRECT_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
-   * <p>Number of bytes read by the {@link #RELATIVE} addressing mode.</p>
+   * Number of bytes read by the {@link #RELATIVE} addressing mode.
    */
   private static final int RELATIVE_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
-   * <p>Number of bytes read by the {@link #ABSOLUTE}, {@link #ABSOLUTE_X} and {@link #ABSOLUTE_Y}
-   * addressing modes.</p>
+   * Number of bytes read by the {@link #ABSOLUTE}, {@link #ABSOLUTE_X} and {@link #ABSOLUTE_Y}
+   * addressing modes.
    */
   private static final int ABSOLUTE_ADDRESSING_BYTES_TO_READ = 2;
 
   /**
-   * <p>Number of bytes read by the {@link #INDIRECT_ZERO_PAGE_Y}, {@link #INDIRECT_ZERO_PAGE_X},
+   * Number of bytes read by the {@link #INDIRECT_ZERO_PAGE_Y}, {@link #INDIRECT_ZERO_PAGE_X},
    * {@link #ZERO_PAGE}, {@link #ZERO_PAGE_X} and {@link #ZERO_PAGE_Y} addressing modes. addressing
-   * modes.</p>
+   * modes.
    */
   private static final int ZERO_PAGE_ADDRESSING_BYTES_TO_READ = 1;
 
   /**
-   * <p>Accumulator addressing mode.</p>
+   * Accumulator addressing mode.
    *
-   * <p>Loads the value of {@link Register#a}.</p>
+   * <p>Loads the value of {@link Register#a}.
    *
-   * <br><table border="1">
+   * <table border="1">
    *   <caption>behavioural summary</caption>
    *   <tr>
    *     <th>description</th> <th>value</th>
@@ -110,16 +110,16 @@ class AddressingMode implements AddressModeFunction {
       IMPLIED_ADDRESSING_BYTES_TO_READ);
 
   /**
-   * <p>Absolute addressing mode.</p>
+   * Absolute addressing mode.
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code PC_LOW}) and {@link
    * Register#programCounter}{@code + 1} ({@code PC_HIGH}). Then constructs a 16-bit address by
    * using {@code PC_LOW} as the 8 lower bits and {@code PC_HIGH} as the 8 higher bits.</p>
    *
-   * <p>The {@code value} of is then read from the {@code address}.</p>
+   * <p>The {@code value} of is then read from the {@code address}.
    *
-   * <br><table border="1">
+   * <table border="1">
    *   <caption>behavioural summary</caption>
    *   <tr>
    *     <th>description</th> <th>value</th>
@@ -150,18 +150,18 @@ class AddressingMode implements AddressModeFunction {
       ABSOLUTE_ADDRESSING_BYTES_TO_READ);
 
   /**
-   * <p>Absolute addressing mode with X register offset.</p>
+   * Absolute addressing mode with X register offset.
    *
    * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
    * Register#programCounter}{@code + 1} ({@code addressHigh}). Then constructs a 16-bit address
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#x} is added
-   * to {@code address}. We will call this address {@code addressPlusX}.</p>
+   * to {@code address}. We will call this address {@code addressPlusX}.
    *
-   * <p>The {@code value} of is then read from the {@code addressPlusX}.</p>
+   * <p>The {@code value} of is then read from the {@code addressPlusX}.
    *
-   * <br><table border="1">
+   * <table border="1">
    *   <caption>behavioural summary</caption>
    *   <tr>
    *     <th>description</th> <th>value</th>
@@ -204,16 +204,16 @@ class AddressingMode implements AddressModeFunction {
   /**
    * Absolute addressing mode with Y register offset.
    *
-   * <br>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
+   * <p>To construct the {@code address}, this mode reads two 8-bit values from the {@link CpuBus}
    * at addresses {@link Register#programCounter}({@code addressLow}) and {@link
    * Register#programCounter}{@code + 1} ({@code addressHigh}). Then constructs a 16-bit address
    * by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8 higher bits.
    * We will call this address {@code address}. Finally, the value of {@link Register#y} is added
    * to {@code address}. We will call this address {@code addressPlusY}.
    *
-   * <br>The {@code value} of is then read from the {@code addressPlusY}.
+   * <p>The {@code value} of is then read from the {@code addressPlusY}.
    *
-   * <br><table border="1">
+   * <table border="1">
    *   <caption>behavioural summary</caption>
    *   <tr>
    *     <th>description</th> <th>value</th>

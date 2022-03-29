@@ -101,11 +101,13 @@ class Command implements CommandFunction {
       "BIT");
 
   static Command BMI = new Command(
-      (register, bus, addressingMode) -> branch(addressingMode, register, bus, register.isNegativeFlagSet()),
+      (register, bus, addressingMode) ->
+          branch(addressingMode, register, bus, register.isNegativeFlagSet()),
       "BMI");
 
   static Command BNE = new Command(
-      (register, bus, addressingMode) -> branch(addressingMode, register, bus, !register.isZeroFlagSet()),
+      (register, bus, addressingMode) ->
+          branch(addressingMode, register, bus, !register.isZeroFlagSet()),
       "BNE");
 
   static Command BPL = new Command(
