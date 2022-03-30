@@ -11,6 +11,14 @@ import lombok.experimental.Delegate;
 /**
  * <p>The commands supported by the 6502 processor.</p>
  *
+ * <p>In its core, a command operates on a single {@code value} and/or the {@code address}
+ * from which the {@code value} was read. For example, the command {@link #ASL} (Arithmetic shift
+ * left) shifts the value to the left by 1 position and writes it back to its original address. If
+ * the value was read from the accumulator (represented by the addressing mode {@link
+ * AddressingMode#ACCUMULATOR}), it will be written to {@link Register#a} (which has no explicit
+ * address on the bus). Some commands only need the {@link AddressingResult#value}, some need the
+ * {@link AddressingResult#address}, some need both, and some need none.</p>
+ *
  * <p>As described in {@link CommandFunction}, each {@link Command} takes a {@link AddressingResult}
  * as input and returns a {@link CommandResult}.</p>
  *
