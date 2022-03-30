@@ -10,6 +10,8 @@ import lombok.*;
 class Register {
   static final int STACK_POINTER_MASK = 0xFF;
   static final int PROGRAM_COUNTER_MASK = 0xFFFF;
+  public static final int INITIAL_STACK_POINTER_VALUE = 0xFD;
+  public static final int INITIAL_STATUS_VALUE = 0x34;
 
   static final int NEGATIVE_MASK = 0x80;
   static final int OVERFLOW_MASK = 0x40;
@@ -25,12 +27,12 @@ class Register {
   private int y;
 
   @Getter(AccessLevel.NONE)
-  private int stackPointer;
+  private int stackPointer = INITIAL_STACK_POINTER_VALUE;
 
   @Getter(AccessLevel.NONE)
   private int programCounter;
 
-  private int status;
+  private int status = INITIAL_STATUS_VALUE;
 
   public Register(
       int a,
@@ -87,38 +89,47 @@ class Register {
     }
   }
 
-  int programCounter() {
+  Register reset() {
+    status(INITIAL_STATUS_VALUE);
+    a(0);
+    x(0);
+    y(0);
+    stackPointer(INITIAL_STACK_POINTER_VALUE);
+    return this;
+  }
+
+  final int programCounter() {
     return programCounter & PROGRAM_COUNTER_MASK;
   }
 
-  int getAndIncrementProgramCounter() {
+  final int getAndIncrementProgramCounter() {
     return programCounter++ & PROGRAM_COUNTER_MASK;
   }
 
-  Register incrementProgramCounter() {
+  final Register incrementProgramCounter() {
     ++programCounter;
     return this;
   }
 
-  Register decrementProgramCounter() {
+  final Register decrementProgramCounter() {
     --programCounter;
     return this;
   }
 
-  int stackPointer() {
+  final int stackPointer() {
     return stackPointer & STACK_POINTER_MASK;
   }
 
-  int getAndDecrementStackPointer() {
+  final int getAndDecrementStackPointer() {
     return stackPointer-- & STACK_POINTER_MASK;
   }
 
-  Register decrementStackPointer() {
+  final Register decrementStackPointer() {
     --stackPointer;
     return this;
   }
 
-  int incrementAndGetStackPointer() {
+  final int incrementAndGetStackPointer() {
     return ++stackPointer & STACK_POINTER_MASK;
   }
 

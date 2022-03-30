@@ -12,7 +12,7 @@ class RegisterTest {
   @DisplayName("Constructor tests")
   class ConstructorTest {
     @Test
-    @DisplayName("no-args constructor initializes everything with 0 or false")
+    @DisplayName("no-args constructor initializes everything with the default values")
     void everythingShouldBeZeroWhenNoArgsConstructorIsCalled() {
       // WHEN
       final Register register = new Register();
@@ -21,16 +21,16 @@ class RegisterTest {
       assertThat(register.a()).isEqualTo(0);
       assertThat(register.x()).isEqualTo(0);
       assertThat(register.y()).isEqualTo(0);
-      assertThat(register.stackPointer()).isEqualTo(0);
+      assertThat(register.stackPointer()).isEqualTo(INITIAL_STACK_POINTER_VALUE);
       assertThat(register.programCounter()).isEqualTo(0);
-      assertThat(register.isCarryFlagSet()).isEqualTo(false);
-      assertThat(register.isCarryFlagSet()).isEqualTo(false);
-      assertThat(register.isZeroFlagSet()).isEqualTo(false);
-      assertThat(register.isDisableIrqFlagSet()).isEqualTo(false);
-      assertThat(register.isDecimalModeFlagSet()).isEqualTo(false);
-      assertThat(register.isBreakFlagSet()).isEqualTo(false);
-      assertThat(register.isOverflowFlagSet()).isEqualTo(false);
       assertThat(register.isNegativeFlagSet()).isEqualTo(false);
+      assertThat(register.isOverflowFlagSet()).isEqualTo(false);
+      assertThat(register.isUnusedFlagSet()).isEqualTo(true);
+      assertThat(register.isBreakFlagSet()).isEqualTo(true);
+      assertThat(register.isDecimalModeFlagSet()).isEqualTo(false);
+      assertThat(register.isDisableIrqFlagSet()).isEqualTo(true);
+      assertThat(register.isZeroFlagSet()).isEqualTo(false);
+      assertThat(register.isCarryFlagSet()).isEqualTo(false);
     }
 
     @Test
