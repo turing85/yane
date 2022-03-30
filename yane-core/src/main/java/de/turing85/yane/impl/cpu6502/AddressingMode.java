@@ -27,17 +27,17 @@ class AddressingMode implements AddressingModeFunction {
    * which transfers the data of {@link Register#a} into {@link Register#x}), this value is set to
    * {@link AddressingResult#address}. This indicates that the address should not be read.
    */
-  static int IMPLIED_LOADED_ADDRESS = Integer.MIN_VALUE;
+  static final int IMPLIED_LOADED_ADDRESS = Integer.MIN_VALUE;
   /**
    * Only used by pseudo-{@link Instruction}s with illegal opcodes.
    */
-  static int UNKNOWN_LOADED_ADDRESS = Integer.MIN_VALUE;
+  static final int UNKNOWN_LOADED_ADDRESS = Integer.MIN_VALUE;
 
   /**
    * The {@link #IMPLIED} and {@link #UNKNOWN} addressing modes do not read any data, thus {@link
    * AddressingResult#value} is set to this value, indicating that no data has been read.
    */
-  static int NOTHING_READ_VALUE = Integer.MIN_VALUE;
+  static final int NOTHING_READ_VALUE = Integer.MIN_VALUE;
 
   /**
    * Number of bytes read by the {@link #IMPLIED} addressing mode.

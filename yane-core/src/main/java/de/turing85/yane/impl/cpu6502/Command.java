@@ -72,14 +72,14 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
    */
-  static Command ADC = new Command(
+  static final Command ADC = new Command(
       addressingResult -> {
         final Register updatedRegister = addressingResult.register();
         final int a = updatedRegister.a();
         final int value = addressingResult.value();
         final int rawResult = a + value + (updatedRegister.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFF;
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .a(result)
                 .negativeFlag(isNegative(rawResult))
@@ -108,13 +108,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command AND = new Command(
+  static final Command AND = new Command(
       addressingResult -> {
         final Register updatedRegister = addressingResult.register();
         final int a = updatedRegister.a();
         final int value = addressingResult.value();
         final int result = a & value;
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .a(result)
                 .negativeFlag(isNegative(result))
@@ -141,7 +141,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
    */
-  static Command ASL = new Command(
+  static final Command ASL = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
         final int rawResult = value << 1;
@@ -153,7 +153,7 @@ class Command implements CommandFunction {
             result,
             addressingResult.register(),
             bus);
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(isZero(result))
@@ -181,7 +181,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BCC = new Command(
+  static final Command BCC = new Command(
       addressingResult ->
           branchIf(!addressingResult.register().isCarryFlagSet(), addressingResult),
       "BCC");
@@ -204,7 +204,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BCS = new Command(
+  static final Command BCS = new Command(
       addressingResult ->
           branchIf(addressingResult.register().isCarryFlagSet(), addressingResult),
       "BCS");
@@ -227,7 +227,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BEQ = new Command(
+  static final Command BEQ = new Command(
       addressingResult ->
           branchIf(addressingResult.register().isZeroFlagSet(), addressingResult),
       "BEQ");
@@ -256,10 +256,10 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BIT = new Command(
+  static final Command BIT = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(isNegative(value))
                 .overflowFlag((value & OVERFLOW_MASK) > 0)
@@ -287,7 +287,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BMI = new Command(
+  static final Command BMI = new Command(
       addressingResult ->
           branchIf(addressingResult.register().isNegativeFlagSet(), addressingResult),
       "BMI");
@@ -310,7 +310,7 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BNE = new Command(
+  static final Command BNE = new Command(
       addressingResult ->
           branchIf(!addressingResult.register().isZeroFlagSet(), addressingResult),
       "BNE");
@@ -333,12 +333,12 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    */
-  static Command BPL = new Command(
+  static final Command BPL = new Command(
       addressingResult ->
           branchIf(!addressingResult.register().isNegativeFlagSet(), addressingResult),
       "BPL");
 
-  static Command BRK = new Command(
+  static final Command BRK = new Command(
       addressingResult -> {
         final Register register = addressingResult.register()
             .setDisableIrqFlag()
@@ -346,7 +346,7 @@ class Command implements CommandFunction {
             .incrementProgramCounter();
         final CpuBus bus = addressingResult.bus();
         pushToStack(register, register.programCounter(), bus);
-        return CommandResult.of(
+        return new CommandResult(
             pushStatusToStack(register, bus)
                 .unsetBreakFlag()
                 .programCounter(FORCE_BREAK_PROGRAM_COUNTER),
@@ -355,51 +355,51 @@ class Command implements CommandFunction {
       },
       "BRK");
 
-  static Command BVC = new Command(
+  static final Command BVC = new Command(
       addressingResult ->
           branchIf(!addressingResult.register().isOverflowFlagSet(), addressingResult),
       "BVC");
 
-  static Command BVS = new Command(
+  static final Command BVS = new Command(
       addressingResult ->
           branchIf(addressingResult.register().isOverflowFlagSet(), addressingResult),
       "BVS");
 
-  static Command CLC = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command CLC = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().unsetCarryFlag(),
           addressingResult.bus(),
           0),
       "CLC");
 
-  static Command CLD = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command CLD = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().unsetDecimalModeFlag(),
           addressingResult.bus(),
           0),
       "CLD");
 
-  static Command CLI = new Command(
+  static final Command CLI = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               addressingResult.register().unsetDisableIrqFlag(),
               addressingResult.bus(),
               0),
       "CLI");
 
-  static Command CLV = new Command(
+  static final Command CLV = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               addressingResult.register().unsetOverflowFlag(),
               addressingResult.bus(),
               0),
       "CLV");
 
-  static Command CMP = new Command(
+  static final Command CMP = new Command(
       addressingResult -> {
         final int a = addressingResult.register().a();
         final int value = addressingResult.value();
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(value > a)
                 .zeroFlag(value == a)
@@ -409,11 +409,11 @@ class Command implements CommandFunction {
       },
       "CMP");
 
-  static Command CPX = new Command(
+  static final Command CPX = new Command(
       addressingResult -> {
         final int x = addressingResult.register().x();
         final int value = addressingResult.value();
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(value > x)
                 .zeroFlag(value == x)
@@ -423,11 +423,11 @@ class Command implements CommandFunction {
       },
       "CPX");
 
-  static Command CPY = new Command(
+  static final Command CPY = new Command(
       addressingResult -> {
         final int y = addressingResult.register().y();
         final int value = addressingResult.value();
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(value > y)
                 .zeroFlag(value == y)
@@ -437,12 +437,12 @@ class Command implements CommandFunction {
       },
       "CPY");
 
-  static Command DEC = new Command(
+  static final Command DEC = new Command(
       addressingResult -> {
         final int valueDecremented = (addressingResult.value() - 1) & 0xFF;
         final CpuBus bus = addressingResult.bus();
         bus.write(addressingResult.address(), valueDecremented);
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(isNegative(valueDecremented))
                 .zeroFlag(valueDecremented == 0),
@@ -451,25 +451,25 @@ class Command implements CommandFunction {
       },
       "DEC");
 
-  static Command DEX = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command DEX = new Command(
+      addressingResult -> new CommandResult(
           set(addressingResult.register()::x, (addressingResult.register().x() - 1) & 0xFF),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "DEX");
 
-  static Command DEY = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command DEY = new Command(
+      addressingResult -> new CommandResult(
           set(addressingResult.register()::y, (addressingResult.register().y() - 1) & 0xFF),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "DEY");
 
-  static Command EOR = new Command(
+  static final Command EOR = new Command(
       addressingResult -> {
         final Register updatedRegister = addressingResult.register();
         final int newA = updatedRegister.a() ^ addressingResult.value();
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .a(newA)
                 .negativeFlag(isNegative(newA))
@@ -479,12 +479,12 @@ class Command implements CommandFunction {
       },
       "EOR");
 
-  static Command INC = new Command(
+  static final Command INC = new Command(
       addressingResult -> {
         final int newValue = (addressingResult.value() + 1) & 0xFF;
         final CpuBus bus = addressingResult.bus();
         bus.write(addressingResult.address(), newValue);
-        return CommandResult.of(
+        return new CommandResult(
             addressingResult.register()
                 .negativeFlag(isNegative(newValue))
                 .zeroFlag(newValue == 0),
@@ -493,60 +493,60 @@ class Command implements CommandFunction {
       },
       "INC");
 
-  static Command INX = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command INX = new Command(
+      addressingResult -> new CommandResult(
           set(addressingResult.register()::x, (addressingResult.register().x() + 1) & 0xFF),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "INX");
 
-  static Command INY = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command INY = new Command(
+      addressingResult -> new CommandResult(
           set(addressingResult.register()::y, (addressingResult.register().y() + 1) & 0xFF),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "INY");
 
-  static Command JMP = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command JMP = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().programCounter(addressingResult.address()),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "JMP");
 
-  static Command JSR = new Command(
+  static final Command JSR = new Command(
       addressingResult -> {
         final Register updatedRegister = addressingResult.register().decrementProgramCounter();
         pushProgramCounterToStack(updatedRegister, addressingResult.bus());
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister.programCounter(addressingResult.address()),
             addressingResult.bus(),
             addressingResult.additionalCyclesNeeded());
       },
       "JSR");
 
-  static Command LDA = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command LDA = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().a(addressingResult.value()),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "LDA");
 
-  static Command LDX = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command LDX = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().x(addressingResult.value()),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "LDX");
 
-  static Command LDY = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command LDY = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().y(addressingResult.value()),
           addressingResult.bus(),
           addressingResult.additionalCyclesNeeded()),
       "LDY");
 
-  static Command LSR = new Command(
+  static final Command LSR = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
         final int result = (value >> 1) & 0xFF;
@@ -556,7 +556,7 @@ class Command implements CommandFunction {
             result,
             addressingResult.register(),
             addressingResult.bus());
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
@@ -566,16 +566,16 @@ class Command implements CommandFunction {
       },
       "LSR");
 
-  static Command NOP = new Command(
-      addressingResult -> CommandResult.of(addressingResult.register(), addressingResult.bus(), 0),
+  static final Command NOP = new Command(
+      addressingResult -> new CommandResult(addressingResult.register(), addressingResult.bus(), 0),
       "NOP");
 
-  static Command ORA = new Command(
+  static final Command ORA = new Command(
       addressingResult -> {
         Register updatedRegister = addressingResult.register();
         final int value = addressingResult.value();
         final int result = value | updatedRegister.a();
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .a(result)
                 .negativeFlag(isNegative(result))
@@ -585,27 +585,27 @@ class Command implements CommandFunction {
       },
       "ORA");
 
-  static Command PHA = new Command(
+  static final Command PHA = new Command(
       addressingResult -> {
         pushToStack(
             addressingResult.register(),
             addressingResult.register().a(),
             addressingResult.bus());
-        return CommandResult.of(addressingResult.register(), addressingResult.bus(), 0);
+        return new CommandResult(addressingResult.register(), addressingResult.bus(), 0);
       },
       "PHA");
 
-  static Command PHP = new Command(
+  static final Command PHP = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               pushStatusToStack(addressingResult.register(), addressingResult.bus()),
               addressingResult.bus(),
               0),
       "PHP");
 
-  static Command PLA = new Command(
+  static final Command PLA = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               addressingResult.register().a(pullFromStack(
                   addressingResult.register(),
                   addressingResult.bus())),
@@ -613,9 +613,9 @@ class Command implements CommandFunction {
               0),
       "PLA");
 
-  static Command PLP = new Command(
+  static final Command PLP = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               addressingResult.register().status(pullFromStack(
                   addressingResult.register(),
                   addressingResult.bus())),
@@ -623,7 +623,7 @@ class Command implements CommandFunction {
               0),
       "PLP");
 
-  static Command ROL = new Command(
+  static final Command ROL = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
         final int rawResult = (value << 1) & ((value & 0x100) >> 4);
@@ -634,7 +634,7 @@ class Command implements CommandFunction {
             result,
             addressingResult.register(),
             addressingResult.bus());
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
@@ -644,7 +644,7 @@ class Command implements CommandFunction {
       },
       "ROL");
 
-  static Command ROR = new Command(
+  static final Command ROR = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
         final int rawResult = (value >> 1) & ((value & 0x0001) << 4);
@@ -655,7 +655,7 @@ class Command implements CommandFunction {
             result,
             addressingResult.register(),
             addressingResult.bus());
-        return CommandResult.of(
+        return new CommandResult(
             updatedRegister
                 .negativeFlag(isNegative(result))
                 .zeroFlag(result == 0)
@@ -665,10 +665,10 @@ class Command implements CommandFunction {
       },
       "ROR");
 
-  static Command RTI = new Command(
+  static final Command RTI = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
-        return CommandResult.of(
+        return new CommandResult(
             pullStatusFromStack(pullProgramCounterFromStack(addressingResult.register(), bus), bus)
                 .setUnusedFlag()
                 .unsetBreakFlag(),
@@ -677,23 +677,23 @@ class Command implements CommandFunction {
       },
       "RTI");
 
-  static Command RTS = new Command(
+  static final Command RTS = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               pullProgramCounterFromStack(addressingResult.register(), addressingResult.bus())
                   .incrementProgramCounter(),
               addressingResult.bus(),
               0),
       "RTS");
 
-  static Command SBC = new Command(
+  static final Command SBC = new Command(
       addressingResult -> {
         final Register register = addressingResult.register();
         final int a = register.a();
         final int value = addressingResult.value();
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & 0xFF;
-        return CommandResult.of(
+        return new CommandResult(
             register
                 .a(result)
                 .negativeFlag(isNegative(result))
@@ -705,53 +705,53 @@ class Command implements CommandFunction {
       },
       "SBC");
 
-  static Command SEC = new Command(
+  static final Command SEC = new Command(
       addressingResult ->
-          CommandResult.of(addressingResult.register().setCarryFlag(), addressingResult.bus(), 0),
+          new CommandResult(addressingResult.register().setCarryFlag(), addressingResult.bus(), 0),
       "SEC");
 
-  static Command SED = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command SED = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().setDecimalModeFlag(),
           addressingResult.bus(),
           0),
       "SED");
 
-  static Command SEI = new Command(
-      addressingResult -> CommandResult.of(
+  static final Command SEI = new Command(
+      addressingResult -> new CommandResult(
           addressingResult.register().setDisableIrqFlag(),
           addressingResult.bus(),
           0),
       "SEI");
 
-  static Command STA = new Command(
+  static final Command STA = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
         final Register register = addressingResult.register();
         bus.write(addressingResult.address(), register.a());
-        return CommandResult.of(register, bus, addressingResult.additionalCyclesNeeded());
+        return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STA");
 
-  static Command STX = new Command(
+  static final Command STX = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
         final Register register = addressingResult.register();
         bus.write(addressingResult.address(), register.x());
-        return CommandResult.of(register, bus, addressingResult.additionalCyclesNeeded());
+        return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STX");
 
-  static Command STY = new Command(
+  static final Command STY = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
         final Register register = addressingResult.register();
         bus.write(addressingResult.address(), register.y());
-        return CommandResult.of(register, bus, addressingResult.additionalCyclesNeeded());
+        return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STY");
 
-  static Command TAX = new Command(
+  static final Command TAX = new Command(
       addressingResult -> transfer(
           addressingResult.register()::a,
           addressingResult.register()::x,
@@ -759,25 +759,25 @@ class Command implements CommandFunction {
       "TAX");
 
   private static CommandResult transfer(
-      Supplier<Integer> transferSource,
-      Function<Integer, Register> transferTarget,
+      IntSupplier transferSource,
+      IntFunction<Register> transferTarget,
       AddressingResult addressingResult) {
-    return CommandResult.of(
-        transferTarget.apply(transferSource.get()),
+    return new CommandResult(
+        transferTarget.apply(transferSource.getAsInt()),
         addressingResult.bus(),
         0);
   }
 
-  static Command TAY = new Command(
+  static final Command TAY = new Command(
       addressingResult -> transfer(
           addressingResult.register()::a,
           addressingResult.register()::y,
           addressingResult),
       "TAY");
 
-  static Command TSX = new Command(
+  static final Command TSX = new Command(
       addressingResult ->
-          CommandResult.of(
+          new CommandResult(
               addressingResult.register().x(pullFromStack(
                   addressingResult.register(),
                   addressingResult.bus())),
@@ -785,32 +785,32 @@ class Command implements CommandFunction {
               0),
       "TSX");
 
-  static Command TXA = new Command(
+  static final Command TXA = new Command(
       addressingResult -> transfer(
           addressingResult.register()::x,
           addressingResult.register()::a,
           addressingResult),
       "TXA");
 
-  static Command TXS = new Command(
+  static final Command TXS = new Command(
       addressingResult -> {
         pushToStack(
             addressingResult.register(),
             addressingResult.register().x(),
             addressingResult.bus());
-        return CommandResult.of(addressingResult.register(), addressingResult.bus(), 0);
+        return new CommandResult(addressingResult.register(), addressingResult.bus(), 0);
       },
       "TXS");
 
-  static Command TYA = new Command(
+  static final Command TYA = new Command(
       addressingResult -> transfer(
           addressingResult.register()::y,
           addressingResult.register()::a,
           addressingResult),
       "TYA");
 
-  static Command UNKNOWN = new Command(
-      addressingResult -> CommandResult.of(addressingResult.register(), addressingResult.bus(), 0),
+  static final Command UNKNOWN = new Command(
+      addressingResult -> new CommandResult(addressingResult.register(), addressingResult.bus(), 0),
       "???");
 
   @Override
@@ -853,7 +853,7 @@ class Command implements CommandFunction {
         ++additionalCyclesNeeded;
       }
     }
-    return CommandResult.of(updatedRegister, addressingResult.bus(), additionalCyclesNeeded);
+    return new CommandResult(updatedRegister, addressingResult.bus(), additionalCyclesNeeded);
   }
 
   private static boolean addressesAreOnDifferentPages(int lhs, int rhs) {
@@ -892,7 +892,7 @@ class Command implements CommandFunction {
     return bus.read(register.incrementAndGetStackPointer());
   }
 
-  private static Register set(Function<Integer, Register> registerSetter, int newValue) {
+  private static Register set(IntFunction<Register> registerSetter, int newValue) {
     return registerSetter.apply(newValue)
         .negativeFlag(isNegative(newValue))
         .zeroFlag(newValue == 0);

@@ -89,12 +89,13 @@ class Register {
     }
   }
 
-  Register reset() {
+  Register reset(int programCounterForReset) {
     status(INITIAL_STATUS_VALUE);
     a(0);
     x(0);
     y(0);
     stackPointer(INITIAL_STACK_POINTER_VALUE);
+    programCounter(programCounterForReset);
     return this;
   }
 

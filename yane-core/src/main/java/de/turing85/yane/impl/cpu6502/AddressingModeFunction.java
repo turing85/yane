@@ -14,7 +14,7 @@ import java.util.function.*;
  * <p>Furthermore, data fetches may occur on the {@link Register#programCounter}. In those cases,
  * the program counter must be incremented.</p>
  *
- * <p>The call only represents data <strong>fetchin</strong>. If, for example, during the execution
+ * <p>The call only represents data <strong>fetching</strong>. If, for example, during the execution
  * of a command is then subsequently written back to the bus, then this is not represented by this
  * call.</p>
  */

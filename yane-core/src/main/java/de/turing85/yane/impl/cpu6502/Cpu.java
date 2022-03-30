@@ -1,24 +1,27 @@
 package de.turing85.yane.impl.cpu6502;
 
-import de.turing85.yane.api.*;
-import java.util.*;
-import lombok.*;
+import de.turing85.yane.api.Clock;
+import de.turing85.yane.api.CpuBus;
+import java.util.Set;
 
-@AllArgsConstructor
 public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
   private static final int RESET_READ_ADDRESS = 0xFFFC;
-  private static final int INITIAL_STACK_POINTER_ADDRESS = 0xFD;
   private static final int CYCLES_FOR_RESET = 8;
 
   private final CpuBus bus;
-  private final Clock clock;
 
   private final Register register;
-  private int instructionPointer;
   private int cycles;
 
+  public Cpu(CpuBus bus, Clock clock, Register register, int cycles) {
+    this.bus = bus;
+    clock.addListener(this::tick);
+    this.register = register;
+    this.cycles = cycles;
+  }
+
   public Cpu(CpuBus bus, Clock clock) {
-    this(bus, clock, new Register(), 0, 0);
+    this(bus, clock, new Register(), 0);
     reset();
   }
 
@@ -28,13 +31,9 @@ public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
 
   @Override
   public void reset() {
-    int low = bus.read(RESET_READ_ADDRESS);
-    int high = bus.read(RESET_READ_ADDRESS + 1);
-    register.programCounter((high << 8) | low);
-    register.a(0);
-    register.x(0);
-    register.y(0);
-    register.stackPointer(INITIAL_STACK_POINTER_ADDRESS);
+    int resetLow = bus.read(RESET_READ_ADDRESS);
+    int resetHigh = bus.read(RESET_READ_ADDRESS + 1);
+    register.reset(resetLow | (resetHigh << 8));
     cycles = CYCLES_FOR_RESET;
   }
 

@@ -15,7 +15,8 @@ import lombok.*;
  *   {@link AddressingModeFunction}-fetching ({@link #additionalCyclesNeeded})
  * </ul>
  */
-@Value(staticConstructor = "of")
+@Value
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 class CommandResult {
   Register register;
   CpuBus bus;
