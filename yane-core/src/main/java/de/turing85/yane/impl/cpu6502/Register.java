@@ -1,39 +1,226 @@
 package de.turing85.yane.impl.cpu6502;
 
+import de.turing85.yane.api.*;
 import lombok.*;
 
+/**
+ * <p>CPU register implementation.</p>
+ *
+ * <p>The register holds values for the CPU. Those values do not have a bus address and are thus
+ * only accessible by the CPU.</p>
+ *
+ * <p>The register holds</p>
+ * <ul>
+ *   <li>an accumulator ({@link #a}): a 8-bit value. Its initial value is {@code 0}.
+ *   <li>an X offset ({@link #x}): a 8-bit value. Its initial value is {@code 0}.
+ *   <li>an Y offset ({@link #y}): a 8-bit value. Its initial value is {@code 0}.
+ *   <li>a status ({@link #status}: a 8-bit value, representing 8 separate flags. These bits are -
+ *   from the most significant to the least significant bit:
+ *   <table border="1">
+ *     <caption>CPU status byte description</caption>
+ *     <tr> <th>Short form</th> <th>Long form</th> <th>Description</th> <th>Initial value</th></tr>
+ *     <tr>
+ *       <td>{@code N}</td>
+ *       <td>Negative flag</td>
+ *       <td>Set when the result of an operation is negative</td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code V}</td>
+ *       <td>Overflow flag</td>
+ *       <td>Set when the operation overflew</td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code U}</td>
+ *       <td>Unused</td>
+ *       <td>This flag is unused</td>
+ *       <td>{@code 1}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code B}</td>
+ *       <td>Break</td>
+ *       <td>
+ *         Set when the {@link Command#BRK} and {@link Command#PHP} push the state to the stack.
+ *         Within the CPU, the flag is never set.
+ *       </td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code D}</td>
+ *       <td>Decimal mode enabled</td>
+ *       <td>
+ *         When activated, the expression {@code 0x09 + 0x01} would evaluate to {@code 0x10}.
+ *         Currently, this mode is not implemented
+ *       </td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code I}</td>
+ *       <td>disable IRQ</td>
+ *       <td>When set, IRQs are not executed</td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code Z}</td>
+ *       <td>Zero flag</td>
+ *       <td>Set when the result of an operation is zero</td>
+ *       <td>{@code 1}</td>
+ *     </tr>
+ *     <tr>
+ *       <td>{@code C}</td>
+ *       <td>Carry bit</td>
+ *       <td>Set when an operation carried a bit</td>
+ *       <td>{@code 0}</td>
+ *     </tr>
+ *   </table>
+ *   <li>
+ *     a program counter ({@link #programCounter}): a 16-bit value, interpreted as bus address.
+ *     The CPU reads the next instruction from the bus address represented by this value.  Its
+ *     initial value is {@code 0x0000}. Its initial value is determined by reading the reset vector
+ *     from the {@link CpuBus}: {@code bus.read(}{@link #RESET_VECTOR} {@code ) | ((bus.read(}
+ *     {@link #RESET_VECTOR}{@code + 1) << 8)}
+ *   <li>
+ *     a stack pointer ({@link #stackPointer}): a 8-bit value, interpreted as bus address. Since
+ *     the 6502 assumes a 16-bit bus, a 8-bit value can only represent a parital address. the stack
+ *     pointer represents the lower 8 bits of an address,  the higher 8 bits are set to {@code
+ *     0x01}. When a value is "stored on the stack", it is written to address {@code 0x01 << 8 |}
+ *     {@link #stackPointer}, and the {@link #stackPointer} is decremented by {@code 1}. When a
+ *     value is read from the stack, {@link #stackPointer} is increased by {@code 1}, and the value
+ *     is read from address {@code 0x01 << 8 |} {@link #stackPointer} (after decrement). Its
+ *     initial value is {@link #INITIAL_STACK_POINTER_VALUE}.
+ * </ul>
+ */
 @Getter(AccessLevel.PACKAGE)
 @Setter(AccessLevel.PACKAGE)
-@NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
 class Register {
+  /**
+   * This bit mask is used to bring values in a legal range for the {@link #stackPointer}.
+   */
   static final int STACK_POINTER_MASK = 0xFF;
-  static final int PROGRAM_COUNTER_MASK = 0xFFFF;
-  public static final int INITIAL_STACK_POINTER_VALUE = 0xFD;
-  public static final int INITIAL_STATUS_VALUE = 0x34;
 
+  /**
+   * This bit mask is used to bring values in a legal range for the {@link #programCounter}.
+   */
+  static final int PROGRAM_COUNTER_MASK = 0xFFFF;
+
+  /**
+   * This bit maks is used to extract the negative flag from {@link #status}.
+   */
   static final int NEGATIVE_MASK = 0x80;
+
+  /**
+   * This bit maks is used to extract the overflow flag from {@link #status}.
+   */
   static final int OVERFLOW_MASK = 0x40;
+
+  /**
+   * This bit maks is used to extract the unused flag from {@link #status}.
+   */
   static final int UNUSED_MASK = 0x20;
+
+  /**
+   * This bit maks is used to extract the break flag from {@link #status}.
+   */
   static final int BREAK_MASK = 0x10;
+
+  /**
+   * This bit maks is used to extract the decimal mode flag from {@link #status}.
+   */
   static final int DECIMAL_MASK = 0x08;
+
+  /**
+   * This bit maks is used to extract the disable IRQ flag from {@link #status}.
+   */
   static final int DISABLE_IRQ_MASK = 0x04;
+
+  /**
+   * This bit maks is used to extract the zero flag from {@link #status}.
+   */
   static final int ZERO_MASK = 0x02;
+
+  /**
+   * This bit maks is used to extract the carry flag from {@link #status}.
+   */
   static final int CARRY_MASK = 0x01;
 
+  /**
+   * The initial value for {@link #stackPointer}.
+   */
+  static final int INITIAL_STACK_POINTER_VALUE = 0xFD;
+
+  /**
+   * The initial value for {@link #status}.
+   */
+  static final int INITIAL_STATUS_VALUE = 0x34;
+
+  /**
+   * <p>Reset vector.</p>
+   *
+   * <p>When a {@link CpuBus} is passed along to the constructor or the {@link #reset(int)} method,
+   * {@link #programCounter} is initialized with the following value:
+   * {@code bus.read(RESET_VECTOR) | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
+   */
+  static final int RESET_VECTOR = 0xFFFC;
+
+  /**
+   * Register value A.
+   */
   private int a;
+
+  /**
+   * Register value X.
+   */
   private int x;
+
+  /**
+   * Register value Y.
+   */
   private int y;
 
+  /**
+   * Stack pointer.
+   */
   @Getter(AccessLevel.NONE)
-  private int stackPointer = INITIAL_STACK_POINTER_VALUE;
+  private int stackPointer;
 
+  /**
+   * Program counter.
+   */
   @Getter(AccessLevel.NONE)
   private int programCounter;
 
-  private int status = INITIAL_STATUS_VALUE;
+  /**
+   * Status.
+   */
+  private int status;
 
+  public Register() {
+    this(0, 0, 0, INITIAL_STACK_POINTER_VALUE, 0, INITIAL_STATUS_VALUE);
+  }
+
+  public Register(CpuBus bus) {
+    this(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1)  << 8));
+  }
+
+  /**
+   * All-args constructor.
+   *
+   * @param a initial value for {@link #a}
+   * @param x initial value for {@link #x}
+   * @param y initial value for {@link #y}
+   * @param stackPointer initial value for {@link #stackPointer}
+   * @param programCounter initial value for {@link #programCounter}
+   * @param negativeFlag initial value for the negative flag
+   * @param overflowFlag initial value for the overflow flag
+   * @param breakFlag initial value for the break flag
+   * @param decimalFlag initial value for the decimal mode flag
+   * @param disableIrqFlag initial value for the disable IRQ flag
+   * @param zeroFlag initial value for the zero flag
+   * @param carryFlag initial value for the carry flag
+   */
   public Register(
       int a,
       int x,
@@ -58,6 +245,27 @@ class Register {
         carryFlag);
   }
 
+  public Register(int programCounter) {
+    this(
+        0,
+        0,
+        0,
+        INITIAL_STACK_POINTER_VALUE,
+        programCounter,
+        INITIAL_STATUS_VALUE);
+  }
+
+  /**
+   * Initializes the status according to the given parameters.
+   *
+   * @param negativeFlag whether the negative flag should be set
+   * @param overflowFlag whether the overflow flag should be set
+   * @param breakFlag whether the break flag should be set
+   * @param decimalFlag whether the decimal flag should be set
+   * @param disableIrqFlag whether the disable IRQ flag should be set
+   * @param zeroFlag whether the zero flag should be set
+   * @param carryFlag whether the carry flag should be set
+   */
   private void initializeStatus(
       boolean negativeFlag,
       boolean overflowFlag,
@@ -89,6 +297,25 @@ class Register {
     }
   }
 
+  /**
+   * <p>Resets the register.</p>
+   *
+   * {@link #programCounter} is set to the following value: {@code bus.read(RESET_VECTOR) |
+   * ((bus.read(RESET_VECTOR + 1) << 8)}
+   *
+   * @param bus the {@link CpuBus} to read from
+   * @return self
+   */
+  Register reset(CpuBus bus) {
+    return reset(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
+  }
+
+  /**
+   * Resets the register.
+   *
+   * @param programCounterForReset the value for {@link #programCounter}
+   * @return self
+   */
   Register reset(int programCounterForReset) {
     status(INITIAL_STATUS_VALUE);
     a(0);
@@ -162,15 +389,6 @@ class Register {
       setOverflowFlag();
     } else {
       unsetOverflowFlag();
-    }
-    return this;
-  }
-
-  final Register unusedFlag(boolean unusedFlag) {
-    if (unusedFlag) {
-      setUnusedFlag();
-    } else {
-      unsetUnusedFlag();
     }
     return this;
   }

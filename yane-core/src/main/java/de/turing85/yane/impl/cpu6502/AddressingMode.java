@@ -594,7 +594,6 @@ class AddressingMode implements AddressingModeFunction {
    * The 8-bit value of {@code zeroPageAddress} is interpreted as a 16-bit address by assuming that 
    * the 8 high bits are all set to 0, effectively forming a zero page address (hence the name). A 
    * second read is made to {@code zeroPageAddress}, to determine the {@code value}.</p>
-   * <p></p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -637,7 +636,6 @@ class AddressingMode implements AddressingModeFunction {
    * interpreted as a 16-bit address by assuming that the 8 high bits are all set to 0, effectively 
    * forming a zero page address (hence the name). A second read is made to 
    * {@code zeroPageAddressPlusX} to determine the {@code value}.</p>
-   * <p></p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -685,7 +683,6 @@ class AddressingMode implements AddressingModeFunction {
    * interpreted as a 16-bit address by assuming that the 8 high bits are all set to 0, effectively 
    * forming a zero page address (hence the name). A second read is made to 
    * {@code zeroPageAddressPlusY} to determine the {@code value}.</p>
-   * <p></p>
    *
    * <table border="1">
    *   <caption>behavioural summary</caption>
@@ -722,6 +719,9 @@ class AddressingMode implements AddressingModeFunction {
       "zpg,Y",
       ZERO_PAGE_ADDRESSING_BYTES_TO_READ);
 
+  /**
+   * This addressing mode is used to represent unknown instructions.
+   */
   static final AddressingMode UNKNOWN = new AddressingMode(
       (register, bus) ->
           new AddressingResult(register, bus, UNKNOWN_LOADED_ADDRESS, NOTHING_READ_VALUE),

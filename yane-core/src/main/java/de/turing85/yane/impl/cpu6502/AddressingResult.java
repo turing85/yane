@@ -21,10 +21,29 @@ import lombok.*;
 @Value
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class AddressingResult {
+  /**
+   * The updated {@link Register}.
+   */
   Register register;
+
+  /**
+   * The bus where {@link #address} and {@link #value} were read from.
+   */
   CpuBus bus;
+
+  /**
+   * The address calculated by this {@link AddressingMode}.
+   */
   int address;
+
+  /**
+   * The value read by this {@link AddressingMode}.
+   */
   int value;
+
+  /**
+   * The number of additional cycles needed by this {@link AddressingMode}.
+   */
   int additionalCyclesNeeded;
 
   AddressingResult(Register register, CpuBus bus, int address, int value) {
