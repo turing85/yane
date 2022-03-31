@@ -39,7 +39,7 @@ class RegisterTest {
       final int expectedA = 1;
       final int expectedX = 2;
       final int expectedY = 3;
-      final int expectedStackPointer = 4;
+      final int stackPointer = 4;
       final int expectedProgramCounter = 5;
       final boolean expectedCarry = true;
       final boolean expectedZero = true;
@@ -54,7 +54,7 @@ class RegisterTest {
           expectedA,
           expectedX,
           expectedY,
-          expectedStackPointer,
+          stackPointer,
           expectedProgramCounter,
           expectedNegative,
           expectedOverflow,
@@ -68,7 +68,7 @@ class RegisterTest {
       assertThat(register.a()).isEqualTo(expectedA);
       assertThat(register.x()).isEqualTo(expectedX);
       assertThat(register.y()).isEqualTo(expectedY);
-      assertThat(register.stackPointer()).isEqualTo(expectedStackPointer);
+      assertThat(register.stackPointer()).isEqualTo(stackPointer);
       assertThat(register.programCounter()).isEqualTo(expectedProgramCounter);
       assertThat(register.isCarryFlagSet()).isEqualTo(expectedCarry);
       assertThat(register.isZeroFlagSet()).isEqualTo(expectedZero);
@@ -221,29 +221,29 @@ class RegisterTest {
       @DisplayName("should return expected value when the stack pointer is mutated")
       void shouldReturnExpectedValueWhenStackPointerIsMutated() {
         // GIVEN
-        final int expectedStackPointer = 17;
+        final int stackPointer = 0x17;
 
         // WHEN
-        Register actual = defaultRegister.stackPointer(expectedStackPointer);
+        Register actual = defaultRegister.stackPointer(stackPointer);
 
         // THEN
         assertThat(actual).isEqualTo(defaultRegister);
-        assertThat(actual.stackPointer()).isEqualTo(expectedStackPointer);
+        assertThat(actual.stackPointer()).isEqualTo(stackPointer);
       }
 
       @Test
       @DisplayName("should increment and get the stack pointer")
       void shouldIncrementAndGetTheStackPointer() {
         // GIVEN
-        final int initialStackPointer = 17;
-        final int expectedStackPointer = 18;
+        final int initialStackPointer = 0x17;
+
         final Register register = defaultRegister.stackPointer(initialStackPointer);
 
         // WHEN
         final int actualStackPointer = register.incrementAndGetStackPointer();
 
         // THEN
-        assertThat(actualStackPointer).isEqualTo(expectedStackPointer);
+        assertThat(actualStackPointer).isEqualTo(initialStackPointer + 1);
       }
 
       @Test
@@ -251,7 +251,6 @@ class RegisterTest {
       void shouldGetAndDecrementTheStackPointer() {
         // GIVEN
         final int initialStackPointer = 17;
-        final int expectedStackPointer = 16;
         final Register register = defaultRegister.stackPointer(initialStackPointer);
 
         // WHEN
@@ -259,23 +258,23 @@ class RegisterTest {
 
         // THEN
         assertThat(actualStackPointer).isEqualTo(initialStackPointer);
-        assertThat(register.stackPointer()).isEqualTo(expectedStackPointer);
+        assertThat(register.stackPointer()).isEqualTo(initialStackPointer - 1);
       }
 
       @Test
       @DisplayName("should mask the stack pointer if it is too large")
       void shouldGetMaskedStackPointer() {
         // GIVEN
-        final int programCounter = 0xF_AB;
-        final int expectedProgramCounter = 0xAB;
+        final int stackPointer = 0xF_AB;
+        final int expectedStackPointer = 0x00AB;
         final Register register = defaultRegister;
 
         // WHEN
-        final Register actualRegister = register.stackPointer(programCounter);
+        final Register actualRegister = register.stackPointer(stackPointer);
 
         // THEN
-        assertThat(actualRegister).isEqualTo(register);
-        assertThat(actualRegister.stackPointer()).isEqualTo(expectedProgramCounter);
+        assertThat(actualRegister.stackPointer())
+            .isEqualTo(expectedStackPointer);
       }
 
       @Test

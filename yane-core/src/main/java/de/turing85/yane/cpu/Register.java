@@ -77,7 +77,7 @@ import lombok.*;
  *     a program counter ({@link #programCounter}): a 16-bit value, interpreted as bus address.
  *     The CPU reads the next instruction from the bus address represented by this value.  Its
  *     initial value is {@code 0x0000}. Its initial value is determined by reading the reset vector
- *     from the {@link CpuBus}: {@code bus.read(}{@link #RESET_VECTOR} {@code ) | ((bus.read(}
+ *     from the {@link CpuBus}: {@code bus.read(}{@link #RESET_VECTOR}{@code ) | ((bus.read(}
  *     {@link #RESET_VECTOR}{@code + 1) << 8)}
  *   <li>
  *     a stack pointer ({@link #stackPointer}): a byte value, interpreted as bus address. Since
@@ -86,7 +86,7 @@ import lombok.*;
  *     0x01}. When a value is "stored on the stack", it is written to address {@code 0x01 << 8 |}
  *     {@link #stackPointer}, and the {@link #stackPointer} is decremented by {@code 1}. When a
  *     value is read from the stack, {@link #stackPointer} is increased by {@code 1}, and the value
- *     is read from address {@code 0x01 << 8 |} {@link #stackPointer} (after decrement). Its
+ *     is read from address {@code 0x01 << 8 |}{@link #stackPointer} (after decrement). Its
  *     initial value is {@link #INITIAL_STACK_POINTER_VALUE}.
  * </ul>
  */

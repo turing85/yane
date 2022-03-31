@@ -41,7 +41,7 @@ class Command implements CommandFunction {
   /**
    * The program counter is set to this value when a forced break is encountered.
    */
-  private static final int FORCE_BREAK_PROGRAM_COUNTER = 0xFFFFFFFE;
+  private static final int FORCE_BREAK_PROGRAM_COUNTER = 0x0000FFFE;
 
   /**
    * The actual implementation of the accessing mode.
@@ -339,33 +339,115 @@ class Command implements CommandFunction {
           branchIf(!addressingResult.register().isNegativeFlagSet(), addressingResult),
       "BPL");
 
+  /**
+   * <p>Break command.</p>
+   *
+   * <p>This command is used to push the current {@link Register} state onto the stack and move the
+   * {@link Register#programCounter} to another bus address.</p>
+   *
+   * <p>In detail, the command executes the following steps in order:</p>
+   * <ul>
+   *   <li> writes the current program counter to the stack (first the higher 8 bits, then lower
+   *        8 bits)
+   *   <li> Sets the {@link Register#isBreakFlagSet()}-flag
+   *   <li> pushes the {@link Register#status} to the stack
+   *   <li> Unsets the {@link Register#isBreakFlagSet()}-flag
+   *   <li> Sets {@link Register#programCounter} to {@code (bus.read(}{@link
+   *        #FORCE_BREAK_PROGRAM_COUNTER}{@code ) << 8) | bus.read(}{@link
+   *        #FORCE_BREAK_PROGRAM_COUNTER}{@code )}
+   * </ul>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>yes</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command BRK = new Command(
       addressingResult -> {
+        final CpuBus bus = addressingResult.bus();
         final Register register = addressingResult.register()
-            .setDisableIrqFlag()
             .setBreakFlag()
             .incrementProgramCounter();
-        final CpuBus bus = addressingResult.bus();
-        pushToStack(register, register.programCounter(), bus);
+        pushProgramCounterToStack(register, bus);
         return new CommandResult(
             pushStatusToStack(register, bus)
                 .unsetBreakFlag()
-                .programCounter(FORCE_BREAK_PROGRAM_COUNTER),
+                .programCounter(readAddressFromBus(RESET_VECTOR, bus)),
             addressingResult.bus(),
             addressingResult.additionalCyclesNeeded());
       },
       "BRK");
 
+  /**
+   * <p>Branch on Overflow Clear command.</p>
+   *
+   * <p>Sets {@link Register#programCounter} to {@code address} if the {@code V}-flag
+   * ({@link Register#isOverflowFlagSet()}) is not set.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command BVC = new Command(
       addressingResult ->
           branchIf(!addressingResult.register().isOverflowFlagSet(), addressingResult),
       "BVC");
 
+  /**
+   * <p>Branch on Overflow Set command.</p>
+   *
+   * <p>Sets {@link Register#programCounter} to {@code address} if the {@code V}-flag
+   * ({@link Register#isOverflowFlagSet()}) is set.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command BVS = new Command(
       addressingResult ->
           branchIf(addressingResult.register().isOverflowFlagSet(), addressingResult),
       "BVS");
 
+  /**
+   * <p>Clear Carry flag command.</p>
+   *
+   * <p>Clears the {@code C}-flag ({@link Register#isCarryFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command CLC = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().unsetCarryFlag(),
@@ -373,6 +455,23 @@ class Command implements CommandFunction {
           0),
       "CLC");
 
+  /**
+   * <p>Clear Decimal mode flag command.</p>
+   *
+   * <p>Clears the {@code D}-flag ({@link Register#isDecimalModeFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>yes</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command CLD = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().unsetDecimalModeFlag(),
@@ -380,6 +479,23 @@ class Command implements CommandFunction {
           0),
       "CLD");
 
+  /**
+   * <p>Clear Disable IRQ flag command.</p>
+   *
+   * <p>Clears the {@code I}-flag ({@link Register#isDisableIrqFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>yes</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command CLI = new Command(
       addressingResult ->
           new CommandResult(
@@ -388,6 +504,23 @@ class Command implements CommandFunction {
               0),
       "CLI");
 
+  /**
+   * <p>Clear Overflow flag command.</p>
+   *
+   * <p>Clears the {@code V}-flag ({@link Register#isOverflowFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command CLV = new Command(
       addressingResult ->
           new CommandResult(
@@ -396,6 +529,32 @@ class Command implements CommandFunction {
               0),
       "CLV");
 
+  /**
+   * <p>Compare with Accumulator ({@link Register#a}) command.</p>
+   *
+   * <p>Compares {@link AddressingResult#value} with {@link Register#a}. Sets</p>
+   *
+   * <ul>
+   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  > }{@link Register#a}
+   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  == }{@link Register#a}
+   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  <= }{@link Register#a}
+   * </ul>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command CMP = new Command(
       addressingResult -> {
         final int a = addressingResult.register().a();
@@ -410,6 +569,32 @@ class Command implements CommandFunction {
       },
       "CMP");
 
+  /**
+   * <p>Compare with X register ({@link Register#x}) command.</p>
+   *
+   * <p>Compares {@link AddressingResult#value} with {@link Register#x}. Sets</p>
+   *
+   * <ul>
+   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  > }{@link Register#x}
+   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  == }{@link Register#x}
+   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  <= }{@link Register#x}
+   * </ul>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command CPX = new Command(
       addressingResult -> {
         final int x = addressingResult.register().x();
@@ -424,6 +609,32 @@ class Command implements CommandFunction {
       },
       "CPX");
 
+  /**
+   * <p>Compare with Y register ({@link Register#y}) command.</p>
+   *
+   * <p>Compares {@link AddressingResult#value} with {@link Register#y}. Sets</p>
+   *
+   * <ul>
+   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  > }{@link Register#y}
+   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  == }{@link Register#y}
+   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *        {@link AddressingResult#value}{@code  <= }{@link Register#y}
+   * </ul>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command CPY = new Command(
       addressingResult -> {
         final int y = addressingResult.register().y();
@@ -438,6 +649,27 @@ class Command implements CommandFunction {
       },
       "CPY");
 
+  /**
+   * <p>Decrement {@link AddressingResult#value} Command.</p>
+   *
+   * <p>Decrements {@link AddressingResult#value} by 1, and writes it back to
+   * {@link AddressingResult#address}.</p>
+   *
+   * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
+   * {@link Register#a} instead.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command DEC = new Command(
       addressingResult -> {
         final int valueDecremented = (addressingResult.value() - 1) & 0xFF;
@@ -452,26 +684,88 @@ class Command implements CommandFunction {
       },
       "DEC");
 
+  /**
+   * <p>Decrement {@link Register#x} Command.</p>
+   *
+   * <p>Decrements {@link Register#x} by 1, and writes it back to {@link Register#y}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command DEX = new Command(
-      addressingResult -> new CommandResult(
-          set(addressingResult.register()::x, (addressingResult.register().x() - 1) & 0xFF),
-          addressingResult.bus(),
-          addressingResult.additionalCyclesNeeded()),
+      addressingResult -> {
+        int newValue = (addressingResult.register().x() - 1) & 0xFF;
+        return new CommandResult(
+            addressingResult.register().x(newValue)
+                .negativeFlag(isNegative(newValue))
+                .zeroFlag(newValue == 0),
+            addressingResult.bus(),
+            addressingResult.additionalCyclesNeeded());
+      },
       "DEX");
 
+  /**
+   * <p>Decrement {@link Register#y} Command.</p>
+   *
+   * <p>Decrements {@link Register#y} by 1, and writes it back to {@link Register#y}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command DEY = new Command(
-      addressingResult -> new CommandResult(
-          set(addressingResult.register()::y, (addressingResult.register().y() - 1) & 0xFF),
-          addressingResult.bus(),
-          addressingResult.additionalCyclesNeeded()),
+      addressingResult -> {
+        int newValue = (addressingResult.register().y() - 1) & 0xFF;
+        return new CommandResult(
+            addressingResult.register().y(newValue)
+                .negativeFlag(isNegative(newValue))
+                .zeroFlag(newValue == 0),
+            addressingResult.bus(),
+            addressingResult.additionalCyclesNeeded());
+      },
       "DEY");
 
+  /**
+   * <p>Exclusive-Or Command.</p>
+   *
+   * <p>Exclusive-Ors {@link AddressingResult#value} with {@link Register#a} and writes the result
+   * back to {@link Register#a}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command EOR = new Command(
       addressingResult -> {
-        final Register updatedRegister = addressingResult.register();
-        final int newA = updatedRegister.a() ^ addressingResult.value();
+        final Register register = addressingResult.register();
+        final int newA = register.a() ^ addressingResult.value();
         return new CommandResult(
-            updatedRegister
+            register
                 .a(newA)
                 .negativeFlag(isNegative(newA))
                 .zeroFlag(newA == 0),
@@ -480,6 +774,27 @@ class Command implements CommandFunction {
       },
       "EOR");
 
+  /**
+   * <p>Increment {@link AddressingResult#value} Command.</p>
+   *
+   * <p>Increments {@link AddressingResult#value} by 1, and writes it back to
+   * {@link AddressingResult#address}.</p>
+   *
+   * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
+   * {@link Register#a} instead.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command INC = new Command(
       addressingResult -> {
         final int newValue = (addressingResult.value() + 1) & 0xFF;
@@ -494,20 +809,81 @@ class Command implements CommandFunction {
       },
       "INC");
 
+  /**
+   * <p>Increment {@link Register#x} Command.</p>
+   *
+   * <p>Increments {@link Register#x} by 1, and writes it back to {@link Register#x}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command INX = new Command(
-      addressingResult -> new CommandResult(
-          set(addressingResult.register()::x, (addressingResult.register().x() + 1) & 0xFF),
-          addressingResult.bus(),
-          addressingResult.additionalCyclesNeeded()),
+      addressingResult -> {
+        int newValue = (addressingResult.register().x() + 1) & 0xFF;
+        return new CommandResult(
+            addressingResult.register().x(newValue)
+                .negativeFlag(isNegative(newValue))
+                .zeroFlag(newValue == 0),
+            addressingResult.bus(),
+            addressingResult.additionalCyclesNeeded());
+      },
       "INX");
 
+  /**
+   * <p>Increment {@link Register#y} Command.</p>
+   *
+   * <p>Increments {@link Register#y} by 1, and writes it back to {@link Register#y}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command INY = new Command(
-      addressingResult -> new CommandResult(
-          set(addressingResult.register()::y, (addressingResult.register().y() + 1) & 0xFF),
-          addressingResult.bus(),
-          addressingResult.additionalCyclesNeeded()),
+      addressingResult -> {
+        int newValue = (addressingResult.register().y() + 1) & 0xFF;
+        return new CommandResult(
+            addressingResult.register().y(newValue)
+                .negativeFlag(isNegative(newValue))
+                .zeroFlag(newValue == 0),
+            addressingResult.bus(),
+            addressingResult.additionalCyclesNeeded());
+      },
       "INY");
 
+  /**
+   * <p>Jump Command.</p>
+   *
+   * <p>Sets {@link Register#programCounter} to {@link AddressingResult#address}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command JMP = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().programCounter(addressingResult.address()),
@@ -515,6 +891,27 @@ class Command implements CommandFunction {
           addressingResult.additionalCyclesNeeded()),
       "JMP");
 
+  /**
+   * <p>Jump and Save Return Address Command.</p>
+   *
+   * <p>Pushes {@link Register#programCounter}{@code + 2} to the stack (higher 8 bits first, lower
+   * 8 bits second). Then writes {@link Register#programCounter} to {@code bus(} {@link
+   * Register#programCounter}{@code  + 1)} (lower 8 bits) and {@code bus(} {@link
+   * Register#programCounter}{@code  + 2)}(higher 8 bits). Finally, sets {@link
+   * Register#programCounter} to {@link AddressingResult#address}</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command JSR = new Command(
       addressingResult -> {
         final Register updatedRegister = addressingResult.register().decrementProgramCounter();
@@ -526,6 +923,23 @@ class Command implements CommandFunction {
       },
       "JSR");
 
+  /**
+   * <p>Load value into Accumulator Command.</p>
+   *
+   * <p>Sets {@link Register#a} to {@link AddressingResult#value}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command LDA = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().a(addressingResult.value()),
@@ -533,6 +947,23 @@ class Command implements CommandFunction {
           addressingResult.additionalCyclesNeeded()),
       "LDA");
 
+  /**
+   * <p>Load value into X register Command.</p>
+   *
+   * <p>Sets {@link Register#x} to {@link AddressingResult#value}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command LDX = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().x(addressingResult.value()),
@@ -540,6 +971,23 @@ class Command implements CommandFunction {
           addressingResult.additionalCyclesNeeded()),
       "LDX");
 
+  /**
+   * <p>Load value into Y Command.</p>
+   *
+   * <p>Sets {@link Register#y} to {@link AddressingResult#value}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command LDY = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().y(addressingResult.value()),
@@ -547,6 +995,27 @@ class Command implements CommandFunction {
           addressingResult.additionalCyclesNeeded()),
       "LDY");
 
+  /**
+   * <p>Logic Shift Right command.</p>
+   *
+   * <p>Shifts {@link AddressingResult#value} one position to the right and writes the result back
+   * to {@link AddressingResult#address}.</p>
+   *
+   * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
+   * {@link Register#a} instead.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command LSR = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
@@ -567,10 +1036,45 @@ class Command implements CommandFunction {
       },
       "LSR");
 
+  /**
+   * <p>No-Operation command.</p>
+   *
+   * <p>It literally does nothing.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command NOP = new Command(
       addressingResult -> new CommandResult(addressingResult.register(), addressingResult.bus(), 0),
       "NOP");
 
+  /**
+   * <p>Or with Accumulator command.</p>
+   *
+   * <p>Ors {@link AddressingResult#value} with {@link Register#a} and writes the result back to
+   * {@link Register#a}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command ORA = new Command(
       addressingResult -> {
         Register updatedRegister = addressingResult.register();
@@ -586,6 +1090,23 @@ class Command implements CommandFunction {
       },
       "ORA");
 
+  /**
+   * <p>Push Accumulator to Stack command.</p>
+   *
+   * <p>Pushes {@link Register#a} to the stack.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command PHA = new Command(
       addressingResult -> {
         pushToStack(
@@ -596,6 +1117,23 @@ class Command implements CommandFunction {
       },
       "PHA");
 
+  /**
+   * <p>Push Status to Stack command.</p>
+   *
+   * <p>Pushes {@link Register#status} to the stack.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command PHP = new Command(
       addressingResult ->
           new CommandResult(
@@ -604,6 +1142,23 @@ class Command implements CommandFunction {
               0),
       "PHP");
 
+  /**
+   * <p>Pull Accumulator from Stack command.</p>
+   *
+   * <p>Pulls {@link Register#a} from the stack.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command PLA = new Command(
       addressingResult ->
           new CommandResult(
@@ -614,6 +1169,25 @@ class Command implements CommandFunction {
               0),
       "PLA");
 
+  /**
+   * <p>Pull Status from Stack command.</p>
+   *
+   * <p>Pulls {@link Register#status} to the stack. The flags {@code B} ({@link
+   * Register#isBreakFlagSet()}) and {@code U} ({@link Register#isUnusedFlagSet()}) are ignored when
+   * {@link Register#status} is pulled.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>from stack</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>from stack</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>from stack</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>from stack</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>from stack</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>from stack</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>from stack</td> </tr>
+   * </table>
+   */
   static final Command PLP = new Command(
       addressingResult ->
           new CommandResult(
@@ -624,6 +1198,27 @@ class Command implements CommandFunction {
               0),
       "PLP");
 
+  /**
+   * <p>Rotate Left command.</p>
+   *
+   * <p>Rotates {@link AddressingResult#value} one position to the left and writes it back to
+   * {@link AddressingResult#address}.</p>
+   *
+   * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
+   * {@link Register#a} instead.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command ROL = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
@@ -645,6 +1240,27 @@ class Command implements CommandFunction {
       },
       "ROL");
 
+  /**
+   * <p>Rotate Right command.</p>
+   *
+   * <p>Rotates {@link AddressingResult#value} one position to the right and writes it back to
+   * {@link AddressingResult#address}.</p>
+   *
+   * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
+   * {@link Register#a} instead.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command ROR = new Command(
       addressingResult -> {
         final int value = addressingResult.value();
@@ -666,6 +1282,35 @@ class Command implements CommandFunction {
       },
       "ROR");
 
+  /**
+   * <p>Return from Interrupt command.</p>
+   *
+   * <p>This command is used to pull the current {@link Register} state from the stack and move the
+   * {@link Register#programCounter} to another bus address.</p>
+   *
+   * <p>In detail, the command executes the following steps in order:</p>
+   *
+   * <ul>
+   *   <li> Pulls {@link Register#programCounter} form the stack (lowest 8 bit first, highest 8 bit
+   *        second),
+   *   <li> Pulls {@link Register#status} from stack}
+   * </ul>
+   *
+   * <p>The {@code B}- ({@link Register#isBreakFlagSet()}) and {@code U}- ({@link
+   * Register#isUnusedFlagSet()})-flags are ignored when {@link Register#status} is pulled.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>from stack</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>from stack</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>from stack</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>from stack</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>from stack</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>from stack</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>from stack</td> </tr>
+   * </table>
+   */
   static final Command RTI = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
@@ -678,6 +1323,24 @@ class Command implements CommandFunction {
       },
       "RTI");
 
+  /**
+   * <p>Return from Subroutine command.</p>
+   *
+   * <p>Pulls {@link Register#programCounter} from the stack and increments
+   * {@link Register#programCounter} by 1.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command RTS = new Command(
       addressingResult ->
           new CommandResult(
@@ -687,6 +1350,27 @@ class Command implements CommandFunction {
               0),
       "RTS");
 
+  /**
+   * <p>Subtract with Borrow command.</p>
+   *
+   * <p>Subtracts {@link AddressingResult#value} from {@link Register#a} and writes the result back
+   * to {@link Register#a}.</p>
+   *
+   * <p>If the {@code C}-flag ({@link Register#isCarryFlagSet()}) is set, the final result is
+   * decremented by {@code 1}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command SBC = new Command(
       addressingResult -> {
         final Register register = addressingResult.register();
@@ -706,11 +1390,45 @@ class Command implements CommandFunction {
       },
       "SBC");
 
+  /**
+   * <p>Set Carry flag command.</p>
+   *
+   * <p>Sets the {@code C}-flag ({@link Register#isCarryFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
+   * </table>
+   */
   static final Command SEC = new Command(
       addressingResult ->
           new CommandResult(addressingResult.register().setCarryFlag(), addressingResult.bus(), 0),
       "SEC");
 
+  /**
+   * <p>Set Decimal mode flag command.</p>
+   *
+   * <p>Sets the {@code D}-flag ({@link Register#isDecimalModeFlagSet()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>yes</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command SED = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().setDecimalModeFlag(),
@@ -718,6 +1436,23 @@ class Command implements CommandFunction {
           0),
       "SED");
 
+  /**
+   * <p>Set Disable IRQ flag command.</p>
+   *
+   * <p>Sets the {@code I}-flag ({@link Register#isDisableIrqFlagSet()} ()}).</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>yes</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command SEI = new Command(
       addressingResult -> new CommandResult(
           addressingResult.register().setDisableIrqFlag(),
@@ -725,6 +1460,23 @@ class Command implements CommandFunction {
           0),
       "SEI");
 
+  /**
+   * <p>Store Accumulator command.</p>
+   *
+   * <p>Writes the value of {@link Register#a} to {@link AddressingResult#address}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command STA = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
@@ -734,6 +1486,23 @@ class Command implements CommandFunction {
       },
       "STA");
 
+  /**
+   * <p>Store X register command.</p>
+   *
+   * <p>Writes the value of {@link Register#x} to {@link AddressingResult#address}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command STX = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
@@ -743,6 +1512,23 @@ class Command implements CommandFunction {
       },
       "STX");
 
+  /**
+   * <p>Store Y register command.</p>
+   *
+   * <p>Writes the value of {@link Register#y} to {@link AddressingResult#address}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command STY = new Command(
       addressingResult -> {
         final CpuBus bus = addressingResult.bus();
@@ -752,47 +1538,120 @@ class Command implements CommandFunction {
       },
       "STY");
 
+  /**
+   * <p>Transfer Accumulator to X register.</p>
+   *
+   * <p>Writes the value of {@link Register#a} to {@link Register#x}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TAX = new Command(
-      addressingResult -> transfer(
-          addressingResult.register()::a,
-          addressingResult.register()::x,
-          addressingResult),
+      addressingResult -> new CommandResult(
+          transfer(addressingResult.register()::a, addressingResult.register()::x),
+          addressingResult.bus(),
+          addressingResult.additionalCyclesNeeded()),
       "TAX");
 
-  private static CommandResult transfer(
-      IntSupplier transferSource,
-      IntFunction<Register> transferTarget,
-      AddressingResult addressingResult) {
-    return new CommandResult(
-        transferTarget.apply(transferSource.getAsInt()),
-        addressingResult.bus(),
-        0);
-  }
-
+  /**
+   * <p>Transfer Accumulator to Y register.</p>
+   *
+   * <p>Writes the value of {@link Register#a} to {@link Register#y}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TAY = new Command(
-      addressingResult -> transfer(
-          addressingResult.register()::a,
-          addressingResult.register()::y,
-          addressingResult),
+      addressingResult -> new CommandResult(
+          transfer(addressingResult.register()::a, addressingResult.register()::y),
+          addressingResult.bus(),
+          addressingResult.additionalCyclesNeeded()),
       "TAY");
 
+  /**
+   * <p>Transfer Stack pointer to X register.</p>
+   *
+   * <p>Transfers {@link Register#stackPointer} to {@link Register#x}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TSX = new Command(
       addressingResult ->
           new CommandResult(
-              addressingResult.register().x(pullFromStack(
-                  addressingResult.register(),
-                  addressingResult.bus())),
+              addressingResult.register().x(addressingResult.register().stackPointer() & 0x00FF),
               addressingResult.bus(),
               0),
       "TSX");
 
+  /**
+   * <p>Transfer X register to Accumulator.</p>
+   *
+   * <p>Transfers {@link Register#x} to {@link Register#a}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TXA = new Command(
-      addressingResult -> transfer(
-          addressingResult.register()::x,
-          addressingResult.register()::a,
-          addressingResult),
+      addressingResult -> new CommandResult(
+          transfer(addressingResult.register()::x, addressingResult.register()::a),
+          addressingResult.bus(),
+          addressingResult.additionalCyclesNeeded()),
       "TXA");
 
+  /**
+   * <p>Transfer X register to Stack pointer.</p>
+   *
+   * <p>Transfers {@link Register#x} to {@link Register#stackPointer}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TXS = new Command(
       addressingResult -> {
         pushToStack(
@@ -803,46 +1662,150 @@ class Command implements CommandFunction {
       },
       "TXS");
 
+  /**
+   * <p>Transfer Y register to Accumulator.</p>
+   *
+   * <p>Transfers {@link Register#y} to {@link Register#a}.</p>
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>yes</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command TYA = new Command(
-      addressingResult -> transfer(
-          addressingResult.register()::y,
-          addressingResult.register()::a,
-          addressingResult),
+      addressingResult -> new CommandResult(
+          transfer(addressingResult.register()::y, addressingResult.register()::a),
+          addressingResult.bus(),
+          addressingResult.additionalCyclesNeeded()),
       "TYA");
 
+  /**
+   * This command is used to represent unknown instructions.
+   *
+   * <table border="1">
+   *   <caption>Flag change summary</caption>
+   *   <tr> <th>Flag</th> <th>set by this command</th> </tr>
+   *   <tr> <td>{@code N} ({@link Register#isNegativeFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code V} ({@link Register#isOverflowFlagSet()}</td>    <td>no</td> </tr>
+   *   <tr> <td>{@code B} ({@link Register#isBreakFlagSet()}</td>       <td>no</td> </tr>
+   *   <tr> <td>{@code D} ({@link Register#isDecimalModeFlagSet()}</td> <td>no</td> </tr>
+   *   <tr> <td>{@code I} ({@link Register#isDisableIrqFlagSet()}</td>  <td>no</td> </tr>
+   *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
+   *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
+   * </table>
+   */
   static final Command UNKNOWN = new Command(
       addressingResult -> new CommandResult(addressingResult.register(), addressingResult.bus(), 0),
       "???");
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
     return mnemonic();
   }
 
-  private static boolean isNegative(int result) {
-    return (result & NEGATIVE_MASK) > 0;
+  /**
+   * Checks whether {@code value} is negative in the yte domain.
+   *
+   * @param value
+   *     the value to check
+   *
+   * @return {@code true} iff. {@code value & 0x80 > 0}
+   */
+  private static boolean isNegative(int value) {
+    return (value & NEGATIVE_MASK) > 0;
   }
 
-  private static boolean isZero(int result) {
-    return (result & 0xFF) == 0;
+  /**
+   * Checks whether {@code value} is zero in the byte domain.
+   *
+   * @param value
+   *     the value to check
+   *
+   * @return {@code true} iff. {@code (value & 0xFF) == 0}
+   */
+  private static boolean isZero(int value) {
+    return (value & 0xFF) == 0;
   }
 
-  private static boolean hasCarried(int result) {
-    return (result & 0xFF00) > 0;
+  /**
+   * Checks whether {@code value} has bits set in the higher 8 bits.
+   *
+   * @param value
+   *     the value to check
+   *
+   * @return {@code true} iff. {@code value & 0xFF00 > 0}
+   */
+  private static boolean hasCarried(int value) {
+    return (value & 0xFF00) > 0;
   }
 
+  /**
+   * Checks whether {@code lhs + rhs (= result)} has overflown.
+   *
+   * @param lhs
+   *     left-handed side
+   * @param rhs
+   *     right-handed side
+   * @param result
+   *     the result in the 8-bit domain
+   *
+   * @return {@code true} iff. {@code lhs} and {@code rhs} have the same sign, but {@code result}
+   *     has a different sign (in the byte domain)
+   */
   private static boolean hasOverflown(int lhs, int rhs, int result) {
     return bytesHaveSameSign(lhs, rhs) && bytesHaveDifferentSign(lhs, result);
   }
 
+  /**
+   * Checks whether {@code lhs} and {@code rhs} have the same sign in the byte domain.
+   *
+   * @param lhs
+   *     left-handed side
+   * @param rhs
+   *     right-handed side
+   *
+   * @return {@code true} iff. {@code (lhs & 0x80) == (rhs & 0x80)}
+   */
   private static boolean bytesHaveSameSign(int lhs, int rhs) {
     return !bytesHaveDifferentSign(lhs, rhs);
   }
 
+  /**
+   * Checks whether {@code lhs} and {@code rhs} have different sign in the byte domain.
+   *
+   * @param lhs
+   *     left-handed side
+   * @param rhs
+   *     right-handed side
+   *
+   * @return {@code true} iff. {@code (lhs & 0x80) != (rhs & 0x80)}
+   */
   private static boolean bytesHaveDifferentSign(int lhs, int rhs) {
     return ((lhs ^ rhs) & 0x80) > 0;
   }
 
+  /**
+   * Helper-function for branch commands.
+   *
+   * @param condition
+   *     branch-condition. The branching is only executed when {@code condition} is {@code true}
+   * @param addressingResult
+   *     the {@link AddressingResult}, holding the {@link Register} and {@link CpuBus}
+   *
+   * @return the {@link CommandResult}, holding the {@link Register}, {@link CpuBus} and the number
+   *     of additional cycles needed (including the additional cycles needed by the {@link
+   *     AddressingMode}).
+   */
   private static CommandResult branchIf(boolean condition, AddressingResult addressingResult) {
     final Register updatedRegister = addressingResult.register();
     int additionalCyclesNeeded = addressingResult.additionalCyclesNeeded();
@@ -857,27 +1820,85 @@ class Command implements CommandFunction {
     return new CommandResult(updatedRegister, addressingResult.bus(), additionalCyclesNeeded);
   }
 
+  /**
+   * Checks whether two addresses are on different memory pages, i.e. whether the 2nd byte differs.
+   *
+   * @param lhs
+   *     left-handed side
+   * @param rhs
+   *     right-handed side
+   *
+   * @return {@code true} iff. {@code (lhs & 0xFF00) != (rhs & 0xFF00)}
+   */
   private static boolean addressesAreOnDifferentPages(int lhs, int rhs) {
     return (lhs & 0xFF00) != (rhs & 0xFF00);
   }
 
+  /**
+   * <p>Helper-method to push the program counter (16-bit value) to the stack.</p>
+   *
+   * <p>The program counter is written in little-endianness, i.e. the higher 8 bits are written
+   * first, the lower 8 bits are written second.</p>
+   *
+   * @param register
+   *     the {@link Register}, holding the {@link Register#programCounter} to push and the {@link
+   *     Register#stackPointer}
+   * @param bus
+   *     the {@link CpuBus} to write to
+   */
   private static void pushProgramCounterToStack(Register register, CpuBus bus) {
     pushToStack(register, (register.programCounter() >> 8), bus);
     pushToStack(register, register.programCounter() & 0xFF, bus);
   }
 
+  /**
+   * <p>Helper-method to pull the program counter (16-bit value) from the stack.</p>
+   *
+   * <p>The program counter is is read in little-endianness, i.e. the lower 8 bits are read
+   * first, the higher 8 bits are read second.</p>
+   *
+   * @param register
+   *     the {@link Register} to store the read {@link Register#programCounter} in and holding the
+   *     {@link Register#stackPointer}
+   * @param bus
+   *     the {@link CpuBus} to read from
+   *
+   * @return the {code register}, for method chaining
+   */
   private static Register pullProgramCounterFromStack(Register register, CpuBus bus) {
     final int programCounterLow = pullFromStack(register, bus);
     final int programCounterHigh = pullFromStack(register, bus) << 8;
     return register.programCounter(programCounterLow | programCounterHigh);
   }
 
+  /**
+   * <p>Helper-method to push the status to the stack.</p>
+   *
+   * @param register
+   *     the {@link Register}, holding the {@link Register#stackPointer} to push and the {@link
+   *     Register#stackPointer}
+   * @param bus
+   *     the {@link CpuBus} to write to
+   *
+   * @return the {code register} parameter, for method chaining
+   */
   private static Register pushStatusToStack(Register register, CpuBus bus) {
     final Register updatedRegister = register.setUnusedFlag();
     pushToStack(register, updatedRegister.status(), bus);
     return updatedRegister;
   }
 
+  /**
+   * <p>Helper-method to pull the stack from the stack.</p>
+   *
+   * @param register
+   *     the {@link Register} to store the read {@link Register#stackPointer} in and holding the
+   *     {@link Register#stackPointer}
+   * @param bus
+   *     the {@link CpuBus} to read from
+   *
+   * @return the {code register} parameter, for method chaining
+   */
   private static Register pullStatusFromStack(Register register, CpuBus bus) {
     return register
         .status(pullFromStack(register, bus))
@@ -885,30 +1906,97 @@ class Command implements CommandFunction {
         .unsetBreakFlag();
   }
 
+  /**
+   * <p>Helper-method to push a value to the stack.</p>
+   *
+   * @param register
+   *     the {@link Register}, holding the {@link Register#stackPointer}
+   * @param value
+   *     the value to push
+   * @param bus
+   *     the {@link CpuBus} to write to
+   */
   private static void pushToStack(Register register, int value, CpuBus bus) {
     bus.write(register.getAndDecrementStackPointer(), value);
   }
 
+  /**
+   * <p>Helper-method to pull a value from the stack.</p>
+   *
+   * @param register
+   *     the {@link Register} holding the {@link Register#stackPointer}
+   * @param bus
+   *     the {@link CpuBus} to read from
+   *
+   * @return the value pulled from the stack
+   */
   static int pullFromStack(Register register, CpuBus bus) {
     return bus.read(register.incrementAndGetStackPointer());
   }
 
-  private static Register set(IntFunction<Register> registerSetter, int newValue) {
-    return registerSetter.apply(newValue)
-        .negativeFlag(isNegative(newValue))
-        .zeroFlag(newValue == 0);
+  /**
+   * <p>Helper-method to read an address (16-bit value) from the {@link CpuBus}.</p>
+   *
+   * <p>The address is read in in little-endianness, i.e. the lower 8 bits are read first, the
+   * higher 8 bits are read second.</p>
+   *
+   * @param address
+   *     the address to read
+   * @param bus
+   *     the {@link CpuBus} to read from
+   *
+   * @return the value read
+   */
+  private static int readAddressFromBus(int address, CpuBus bus) {
+    final int addressLow = bus.read(address);
+    final int addressHigh = bus.read((address + 1) & 0x00FF);
+    return (addressHigh << 8) | addressLow;
   }
 
+  /**
+   * <p>Stores a {@code value}, depending on the {@code address}.</p>
+   *
+   * <p>If {@code address} is {@link AddressingMode#IMPLIED_LOADED_ADDRESS}, then {@code value}
+   * is written to {@link Register#a}. Otherwise, the {@code value} is written to the {@link CpuBus}
+   * at address {@code address}.</p>
+   *
+   * @param address
+   *     address to write to
+   * @param value
+   *     value to write
+   * @param register
+   *     {@link Register} holding the {@link Register#a}
+   * @param bus
+   *     the {@link CpuBus} to write to
+   *
+   * @return the {code register} parameter, for method chaining
+   */
   private static Register storeValueDependingOnAddress(
       int address,
-      int result,
+      int value,
       Register register,
       CpuBus bus) {
     if (address == IMPLIED_LOADED_ADDRESS) {
-      return register.a(result);
+      return register.a(value);
     } else {
-      bus.write(address, result);
+      bus.write(address, value);
       return register;
     }
+  }
+
+  /**
+   * Helper-function to transfer one value to a register/accumulator.
+   *
+   * @param transferSource
+   *     Getter of a {@link Register}
+   * @param transferTarget
+   *     Setter of a {@link Register}
+   *
+   * @return the {code register} parameter, for method chaining
+   */
+  private static Register transfer(
+      IntSupplier transferSource,
+      IntFunction<Register> transferTarget) {
+    return transferTarget.apply(transferSource.getAsInt());
   }
 }
