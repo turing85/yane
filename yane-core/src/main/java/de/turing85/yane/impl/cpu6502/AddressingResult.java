@@ -46,6 +46,16 @@ class AddressingResult {
    */
   int additionalCyclesNeeded;
 
+  /**
+   * <p>Constructor.</p>
+   *
+   * <p>{@link #additionalCyclesNeeded} is set to {@code 0}.</p>
+   *
+   * @param register the {@link #register}
+   * @param bus the {@link #bus}
+   * @param address the {@link #address}
+   * @param value {@link #value}
+   */
   AddressingResult(Register register, CpuBus bus, int address, int value) {
     this(register, bus, address, value, 0);
   }
