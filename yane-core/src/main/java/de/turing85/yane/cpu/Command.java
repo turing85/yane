@@ -188,6 +188,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BCC = new Command(
       addressingResult ->
@@ -211,6 +213,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BCS = new Command(
       addressingResult ->
@@ -234,6 +238,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BEQ = new Command(
       addressingResult ->
@@ -294,6 +300,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BMI = new Command(
       addressingResult ->
@@ -317,6 +325,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BNE = new Command(
       addressingResult ->
@@ -340,6 +350,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BPL = new Command(
       addressingResult ->
@@ -411,6 +423,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BVC = new Command(
       addressingResult ->
@@ -434,6 +448,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#RELATIVE
    */
   static final Command BVS = new Command(
       addressingResult ->
@@ -1761,6 +1777,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see AddressingMode#UNKNOWN
    */
   static final Command UNKNOWN = new Command(
       addressingResult -> new CommandResult(addressingResult.register(), addressingResult.bus(), 0),

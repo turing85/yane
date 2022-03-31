@@ -158,6 +158,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #ABSOLUTE_X
+   * @see #ABSOLUTE_Y
    */
   static final AddressingMode ABSOLUTE = new AddressingMode(
       (register, bus) -> {
@@ -209,6 +212,9 @@ class AddressingMode implements AddressingModeFunction {
    *     </td>
    *   </tr>
    * </table>
+   *
+   * @see #ABSOLUTE
+   * @see #ABSOLUTE_Y
    */
   static final AddressingMode ABSOLUTE_X = new AddressingMode(
       (register, bus) -> {
@@ -266,6 +272,9 @@ class AddressingMode implements AddressingModeFunction {
    *     </td>
    *   </tr>
    * </table>
+   *
+   * @see #ABSOLUTE
+   * @see #ABSOLUTE_X
    */
   static final AddressingMode ABSOLUTE_Y = new AddressingMode(
       (register, bus) -> {
@@ -390,6 +399,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #INDIRECT_ZERO_PAGE_X
+   * @see #INDIRECT_ZERO_PAGE_Y
    */
   static final AddressingMode INDIRECT = new AddressingMode(
       (register, bus) -> {
@@ -453,6 +465,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #INDIRECT
+   * @see #INDIRECT_ZERO_PAGE_Y
    */
   static final AddressingMode INDIRECT_ZERO_PAGE_X = new AddressingMode(
       (register, bus) -> {
@@ -520,6 +535,9 @@ class AddressingMode implements AddressingModeFunction {
    *     </td>
    *   </tr>
    * </table>
+   *
+   * @see #INDIRECT
+   * @see #INDIRECT_ZERO_PAGE_X
    */
   static final AddressingMode INDIRECT_ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
@@ -571,6 +589,15 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see Command#BCC
+   * @see Command#BCS
+   * @see Command#BEQ
+   * @see Command#BMI
+   * @see Command#BNE
+   * @see Command#BPL
+   * @see Command#BVC
+   * @see Command#BVS
    */
   static final AddressingMode RELATIVE = new AddressingMode(
       (register, bus) -> {
@@ -617,6 +644,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #ZERO_PAGE_X
+   * @see #ZERO_PAGE_Y
    */
   static final AddressingMode ZERO_PAGE = new AddressingMode(
       (register, bus) -> {
@@ -659,6 +689,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #ZERO_PAGE
+   * @see #ZERO_PAGE_Y
    */
   static final AddressingMode ZERO_PAGE_X = new AddressingMode(
       (register, bus) -> {
@@ -706,6 +739,9 @@ class AddressingMode implements AddressingModeFunction {
    *     <td>additional cycle needed</td> <td>never</td>
    *   </tr>
    * </table>
+   *
+   * @see #ZERO_PAGE
+   * @see #ZERO_PAGE_X
    */
   static final AddressingMode ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
@@ -722,6 +758,8 @@ class AddressingMode implements AddressingModeFunction {
 
   /**
    * This addressing mode is used to represent unknown instructions.
+   *
+   * @see Command#UNKNOWN
    */
   static final AddressingMode UNKNOWN = new AddressingMode(
       (register, bus) ->
