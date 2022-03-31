@@ -5,6 +5,13 @@ import java.util.function.*;
 import java.util.stream.*;
 import lombok.*;
 
+/**
+ * <p>Instruction of the 6502 processor.</p>
+ *
+ * <p>This class defines instructions for all 256 op codes ({@code 0x00} to {@code 0xFF}). Some of
+ * these op codes represent illegal/undocumented op codes. For a list of all op codes, please
+ * refer to https://www.masswerk.at/6502/6502_instruction_set.html.</p>
+ */
 @Value
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -22,7 +29,7 @@ class Instruction {
   static final Map<Byte, Instruction> INSTRUCTIONS_BY_OPCODE;
 
   /**
-   * A map that maps menmonics (represented as {@link String}s) to the corresponding instruction.
+   * A map that maps mnemonics (represented as {@link String}s) to the corresponding instruction.
    */
   static final Map<String, Set<Instruction>> INSTRUCTIONS_BY_MNEMONIC;
 
