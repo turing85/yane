@@ -9,8 +9,21 @@ import lombok.*;
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Instruction {
+  /**
+   * <p>Set of all instructions.</p>
+   *
+   * <p>This set also includes unknown instructions.</p>
+   */
   static final Set<Instruction> INSTRUCTIONS;
+
+  /**
+   * A map that maps op codes (represented as {code int}s) to the corresponding instruction.
+   */
   static final Map<Byte, Instruction> INSTRUCTIONS_BY_OPCODE;
+
+  /**
+   * A map that maps menmonics (represented as {@link String}s) to the corresponding instruction.
+   */
   static final Map<String, Set<Instruction>> INSTRUCTIONS_BY_MNEMONIC;
 
   static {
@@ -282,24 +295,67 @@ class Instruction {
             (lhs, rhs) -> Stream.concat(lhs.stream(), rhs.stream()).collect(Collectors.toSet())));
   }
 
+  /**
+   * The {@link Command} of this instruction.
+   */
   Command command;
+
+  /**
+   * The {@link AddressingMode} of this instruction.
+   */
   AddressingMode addressingMode;
+
+  /**
+   * the op code (8-bit value) that represents this instruction.
+   */
   byte code;
+
+  /**
+   * <p>The number of cycles this instruction takes to execute.</p>
+   *
+   * <p>Notice that some {@link AddressingMode}s and {@link Command}s may add additional cycles to
+   * the execution, depending on the data read during instruction execution.</p>
+   */
   int cycles;
 
+  /**
+   * <p>The number of bytes read from the {@link Register#programCounter}.</p>
+   *
+   * <p>This value also specifies how often {@link Register#programCounter} is incremented during
+   * the execution of this instruction.</p>
+   *
+   * @return The number of bytes read from the {@link Register#programCounter}
+   */
   public int bytesToRead() {
     return 1 + addressingMode().bytesToRead();
   }
 
+  /**
+   * Static factory to build an instruction for an illegal op code.
+   *
+   * @param code illegal op code
+   * @return the instruction, representing that illegal op code
+   */
   private static Instruction unknownInstruction(byte code) {
     return new Instruction(Command.UNKNOWN, AddressingMode.UNKNOWN, code, 1);
   }
 
+  /**
+   * The mnemonic for this instruction.
+   *
+   * @return A short {@link String}-representation of the instruction.
+   */
   public String mnemonic() {
     return "%s %s".formatted(command().mnemonic(), addressingMode().mnemonic());
   }
 
-  @Override public String toString() {
+  /**
+   * {@inheritDoc}
+   *
+   * @see #mnemonic()
+   */
+  @Override
+  public String toString() {
     return "[0x%08X] \"%s\"".formatted(code(), mnemonic());
   }
 }
