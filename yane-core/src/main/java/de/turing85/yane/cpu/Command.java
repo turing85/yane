@@ -189,6 +189,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCS
+   * @see #BEQ
+   * @see #BMI
+   * @see #BNE
+   * @see #BPL
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BCC = new Command(
@@ -214,6 +221,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BEQ
+   * @see #BMI
+   * @see #BNE
+   * @see #BPL
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BCS = new Command(
@@ -239,6 +253,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BMI
+   * @see #BNE
+   * @see #BPL
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BEQ = new Command(
@@ -301,6 +322,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BEQ
+   * @see #BNE
+   * @see #BPL
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BMI = new Command(
@@ -326,6 +354,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BEQ
+   * @see #BMI
+   * @see #BPL
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BNE = new Command(
@@ -351,6 +386,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BEQ
+   * @see #BMI
+   * @see #BNE
+   * @see #BVC
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BPL = new Command(
@@ -424,6 +466,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BEQ
+   * @see #BMI
+   * @see #BNE
+   * @see #BPL
+   * @see #BVS
    * @see AddressingMode#RELATIVE
    */
   static final Command BVC = new Command(
@@ -449,6 +498,13 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
    *
+   * @see #BCC
+   * @see #BCS
+   * @see #BEQ
+   * @see #BMI
+   * @see #BNE
+   * @see #BPL
+   * @see #BVC
    * @see AddressingMode#RELATIVE
    */
   static final Command BVS = new Command(
