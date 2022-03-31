@@ -163,7 +163,7 @@ class AddressingModeTests {
   @DisplayName("IMMEDIATE addressing mode tests")
   class ImmediateTests {
     @Test
-    @DisplayName("loads the byte at program counter")
+    @DisplayName("loads the byte value at program counter")
     void loadsTheByteAtProgramCounter() {
       // GIVEN
       final int expectedValue = 0x13;

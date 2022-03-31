@@ -12,9 +12,9 @@ import lombok.*;
  * <ul>
  *   <li> the updated {@link #register},
  *   <li> tue updated {@link #bus},
- *   <li> the {@link #value} at the calculated address (8-bit)
- *   <li> the calculated {@link #address} (16-bit)
- *   <li> the number of additional cycles needed by the addressing mode. This depends on the data
+ *   <li> the {@link #value} at the calculated address (8 bit)
+ *   <li> the calculated {@link #address} (16 bits)
+ *   <li> the number of additional cycles needed by the addressing mode. This depends on the bytes
  *        read during the operation.
  * </ul>
  */
@@ -51,10 +51,14 @@ public class AddressingResult {
    *
    * <p>{@link #additionalCyclesNeeded} is set to {@code 0}.</p>
    *
-   * @param register the {@link #register}
-   * @param bus the {@link #bus}
-   * @param address the {@link #address}
-   * @param value {@link #value}
+   * @param register
+   *     the {@link #register}
+   * @param bus
+   *     the {@link #bus}
+   * @param address
+   *     the {@link #address}
+   * @param value
+   *     {@link #value}
    */
   AddressingResult(Register register, CpuBus bus, int address, int value) {
     this(register, bus, address, value, 0);

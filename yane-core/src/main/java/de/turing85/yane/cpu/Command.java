@@ -19,18 +19,19 @@ import lombok.experimental.Delegate;
  * address on the bus). Some commands only need the {@link AddressingResult#value}, some need the
  * {@link AddressingResult#address}, some need both, and some need none.</p>
  *
- * <p>As described in {@link CommandFunction}, each {@link Command} takes a {@link AddressingResult}
- * as input and returns a {@link CommandResult}.</p>
+ * <p>As described in {@link CommandFunction}, each {@link Command} takes a {@link
+ * AddressingResult} as input and returns a {@link CommandResult}.</p>
  *
- * <p>For not, all instructions are executed "at once", so this emulation is not cycle-accurate.</p>
+ * <p>For not, all instructions are executed "at once", so this emulation is not
+ * cycle-accurate.</p>
  *
  * <p>In the following, if we talk about {@code value} and {@code address}, we refer to
  * {@link AddressingResult#value} and {@link AddressingResult#address}, unless otherwise noted.</p>
  *
  * <p>The {@link Register}-flags are set as expected, unless otherwise noted. The flags are set
- * after the core semantic of the command have been executed. For example, when {@code #ADC}
- * (Add with Carry) is executed, the whole addition (including the evaluation of the {{@code C}
- * ({@link Register#isCarryFlagSet()}} and increasing the final result by {@code 1} if it is set) is
+ * after the core semantic of the command have been executed. For example, when {@code #ADC} (Add
+ * with Carry) is executed, the whole addition (including the evaluation of the {{@code C} ({@link
+ * Register#isCarryFlagSet()}} and increasing the final result by {@code 1} if it is set) is
  * executed, before the new flag-values are determined.</p>
  */
 @Value

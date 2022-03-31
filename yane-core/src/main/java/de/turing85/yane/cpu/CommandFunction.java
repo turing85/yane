@@ -17,9 +17,10 @@ interface CommandFunction {
   /**
    * Execute on the given {@link AddressingResult}.
    *
-   * @param addressingResult the {@link AddressingResult}, representing the data on which the
-   *        command operates (including the {@link Register} and
-   *        {@link CpuBus}).
+   * @param addressingResult
+   *     the {@link AddressingResult}, representing the data on which the command operates
+   *     (including the {@link Register} and {@link CpuBus}).
+   *
    * @return the {@link CommandResult}, encapsulating the state after the command execution.
    */
   CommandResult execute(AddressingResult addressingResult);

@@ -4,15 +4,16 @@ import de.turing85.yane.*;
 import lombok.*;
 
 /**
- * <p>The register holds values used by the CPU. Those values do not have a bus address and are thus
+ * <p>The register holds values used by the CPU. Those values do not have a bus address and are
+ * thus
  * only accessible by the CPU.</p>
  *
  * <p>The register holds</p>
  * <ul>
- *   <li>an accumulator ({@link #a}): a 8-bit value. Its initial value is {@code 0}.
- *   <li>an X offset ({@link #x}): a 8-bit value. Its initial value is {@code 0}.
- *   <li>an Y offset ({@link #y}): a 8-bit value. Its initial value is {@code 0}.
- *   <li>a status ({@link #status}: a 8-bit value, representing 8 separate flags. These bits are -
+ *   <li>an accumulator ({@link #a}): a byte value. Its initial value is {@code 0}.
+ *   <li>an X offset ({@link #x}): a byte value. Its initial value is {@code 0}.
+ *   <li>an Y offset ({@link #y}): a byte value. Its initial value is {@code 0}.
+ *   <li>a status ({@link #status}: a byte value, representing 8 separate flags. These bits are -
  *   from the most significant to the least significant bit:
  *   <table border="1">
  *     <caption>CPU status byte description</caption>
@@ -79,8 +80,8 @@ import lombok.*;
  *     from the {@link CpuBus}: {@code bus.read(}{@link #RESET_VECTOR} {@code ) | ((bus.read(}
  *     {@link #RESET_VECTOR}{@code + 1) << 8)}
  *   <li>
- *     a stack pointer ({@link #stackPointer}): a 8-bit value, interpreted as bus address. Since
- *     the 6502 assumes a 16-bit bus, a 8-bit value can only represent a partial address. the stack
+ *     a stack pointer ({@link #stackPointer}): a byte value, interpreted as bus address. Since
+ *     the 6502 assumes a 16-bit bus, a byte value can only represent a partial address. the stack
  *     pointer represents the lower 8 bits of an address,  the higher 8 bits are set to {@code
  *     0x01}. When a value is "stored on the stack", it is written to address {@code 0x01 << 8 |}
  *     {@link #stackPointer}, and the {@link #stackPointer} is decremented by {@code 1}. When a
@@ -158,8 +159,8 @@ class Register {
    * <p>Reset vector.</p>
    *
    * <p>When a {@link CpuBus} is passed along to the constructor or the {@link #reset(int)} method,
-   * {@link #programCounter} is initialized with the following value:
-   * {@code bus.read(RESET_VECTOR) | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
+   * {@link #programCounter} is initialized with the following value: {@code bus.read(RESET_VECTOR)
+   * | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
    */
   static final int RESET_VECTOR = 0xFFFC;
 
@@ -195,29 +196,53 @@ class Register {
    */
   private int status;
 
+  /**
+   * No-args constructor.
+   */
   Register() {
     this(0, 0, 0, INITIAL_STACK_POINTER_VALUE, 0, INITIAL_STATUS_VALUE);
   }
 
+  /**
+   * <p>Constructor.</p>
+   *
+   * <p>{@link #programCounter} is initialized with the following value: {@code
+   * bus.read(RESET_VECTOR) | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
+   *
+   * @param bus
+   *     the {@link CpuBus} to read the value for {@link #programCounter} from.
+   */
   Register(CpuBus bus) {
-    this(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1)  << 8));
+    this(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
   }
 
   /**
    * All-args constructor.
    *
-   * @param a initial value for {@link #a}
-   * @param x initial value for {@link #x}
-   * @param y initial value for {@link #y}
-   * @param stackPointer initial value for {@link #stackPointer}
-   * @param programCounter initial value for {@link #programCounter}
-   * @param negativeFlag initial value for the negative flag
-   * @param overflowFlag initial value for the overflow flag
-   * @param breakFlag initial value for the break flag
-   * @param decimalFlag initial value for the decimal mode flag
-   * @param disableIrqFlag initial value for the disable IRQ flag
-   * @param zeroFlag initial value for the zero flag
-   * @param carryFlag initial value for the carry flag
+   * @param a
+   *     initial value for {@link #a}
+   * @param x
+   *     initial value for {@link #x}
+   * @param y
+   *     initial value for {@link #y}
+   * @param stackPointer
+   *     initial value for {@link #stackPointer}
+   * @param programCounter
+   *     initial value for {@link #programCounter}
+   * @param negativeFlag
+   *     initial value for the negative flag
+   * @param overflowFlag
+   *     initial value for the overflow flag
+   * @param breakFlag
+   *     initial value for the break flag
+   * @param decimalFlag
+   *     initial value for the decimal mode flag
+   * @param disableIrqFlag
+   *     initial value for the disable IRQ flag
+   * @param zeroFlag
+   *     initial value for the zero flag
+   * @param carryFlag
+   *     initial value for the carry flag
    */
   Register(
       int a,
@@ -243,6 +268,12 @@ class Register {
         carryFlag);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param programCounter
+   *     the initial value for {@link #programCounter}
+   */
   Register(int programCounter) {
     this(
         0,
@@ -256,13 +287,20 @@ class Register {
   /**
    * Initializes the status according to the given parameters.
    *
-   * @param negativeFlag whether the negative flag should be set
-   * @param overflowFlag whether the overflow flag should be set
-   * @param breakFlag whether the break flag should be set
-   * @param decimalFlag whether the decimal flag should be set
-   * @param disableIrqFlag whether the disable IRQ flag should be set
-   * @param zeroFlag whether the zero flag should be set
-   * @param carryFlag whether the carry flag should be set
+   * @param negativeFlag
+   *     whether the negative flag should be set
+   * @param overflowFlag
+   *     whether the overflow flag should be set
+   * @param breakFlag
+   *     whether the break flag should be set
+   * @param decimalFlag
+   *     whether the decimal flag should be set
+   * @param disableIrqFlag
+   *     whether the disable IRQ flag should be set
+   * @param zeroFlag
+   *     whether the zero flag should be set
+   * @param carryFlag
+   *     whether the carry flag should be set
    */
   private void initializeStatus(
       boolean negativeFlag,
@@ -301,7 +339,9 @@ class Register {
    * {@link #programCounter} is set to the following value: {@code bus.read(RESET_VECTOR) |
    * ((bus.read(RESET_VECTOR + 1) << 8)}
    *
-   * @param bus the {@link CpuBus} to read from
+   * @param bus
+   *     the {@link CpuBus} to read from
+   *
    * @return self
    */
   Register reset(CpuBus bus) {
@@ -311,7 +351,9 @@ class Register {
   /**
    * Resets the register.
    *
-   * @param programCounterForReset the value for {@link #programCounter}
+   * @param programCounterForReset
+   *     the value for {@link #programCounter}
+   *
    * @return self
    */
   Register reset(int programCounterForReset) {

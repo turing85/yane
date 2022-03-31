@@ -9,8 +9,8 @@ import lombok.*;
  * <p>Instruction of the 6502 processor.</p>
  *
  * <p>This class defines instructions for all 256 op codes ({@code 0x00} to {@code 0xFF}). Some of
- * these op codes represent illegal/undocumented op codes. For a list of all op codes, please
- * refer to https://www.masswerk.at/6502/6502_instruction_set.html.</p>
+ * these op codes represent illegal/undocumented op codes. For a list of all op codes, please refer
+ * to https://www.masswerk.at/6502/6502_instruction_set.html.</p>
  */
 @Value
 @EqualsAndHashCode
@@ -36,7 +36,7 @@ class Instruction {
   static {
     INSTRUCTIONS = Set.of(
         new Instruction(Command.BRK, AddressingMode.IMPLIED, (byte) 0x00, 7),
-        new Instruction(Command.ORA, AddressingMode.INDIRECT_ZERO_PAGE_X, (byte) 0x01,  2),
+        new Instruction(Command.ORA, AddressingMode.INDIRECT_ZERO_PAGE_X, (byte) 0x01, 2),
         Instruction.unknownInstruction((byte) 0x02),
         Instruction.unknownInstruction((byte) 0x03),
         Instruction.unknownInstruction((byte) 0x04),
@@ -313,7 +313,7 @@ class Instruction {
   AddressingMode addressingMode;
 
   /**
-   * the op code (8-bit value) that represents this instruction.
+   * the op code (byte value) that represents this instruction.
    */
   byte code;
 
@@ -340,7 +340,9 @@ class Instruction {
   /**
    * Static factory to build an instruction for an illegal op code.
    *
-   * @param code illegal op code
+   * @param code
+   *     illegal op code
+   *
    * @return the instruction, representing that illegal op code
    */
   private static Instruction unknownInstruction(byte code) {
