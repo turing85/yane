@@ -3,6 +3,7 @@ package de.turing85.yane.cpu;
 import static de.turing85.yane.cpu.AddressingMode.*;
 import static de.turing85.yane.cpu.Register.*;
 
+import de.turing85.yane.*;
 import java.util.function.*;
 import lombok.*;
 import lombok.experimental.Delegate;

@@ -1,5 +1,7 @@
 package de.turing85.yane.cpu;
 
+import de.turing85.yane.*;
+
 /**
  * <p>Represents a function that operates on fetched data, possibly mutating the {@link Register}
  * and {@link CpuBus}.</p>

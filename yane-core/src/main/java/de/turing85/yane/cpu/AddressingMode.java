@@ -1,5 +1,6 @@
 package de.turing85.yane.cpu;
 
+import de.turing85.yane.*;
 import lombok.*;
 import lombok.experimental.Delegate;
 

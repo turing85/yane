@@ -3,6 +3,7 @@ package de.turing85.yane.cpu;
 import static com.google.common.truth.Truth.*;
 import static org.mockito.Mockito.*;
 
+import de.turing85.yane.*;
 import org.junit.jupiter.api.*;
 
 @DisplayName("Addressing mode function tests")

@@ -1,6 +1,6 @@
 package de.turing85.yane.cpu;
 
-import de.turing85.yane.Clock;
+import de.turing85.yane.*;
 import java.util.Set;
 
 public final class Cpu {
