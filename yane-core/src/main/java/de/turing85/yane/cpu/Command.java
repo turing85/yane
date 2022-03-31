@@ -72,6 +72,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #SBC
    */
   static final Command ADC = new Command(
       addressingResult -> {
@@ -108,6 +110,9 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #EOR
+   * @see #ORA
    */
   static final Command AND = new Command(
       addressingResult -> {
@@ -141,6 +146,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #LSR
    */
   static final Command ASL = new Command(
       addressingResult -> {
@@ -368,6 +375,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #RTI
    */
   static final Command BRK = new Command(
       addressingResult -> {
@@ -759,6 +768,9 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #AND
+   * @see #ORA
    */
   static final Command EOR = new Command(
       addressingResult -> {
@@ -911,6 +923,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #RTS
    */
   static final Command JSR = new Command(
       addressingResult -> {
@@ -939,6 +953,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #STA
    */
   static final Command LDA = new Command(
       addressingResult -> new CommandResult(
@@ -963,6 +979,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #STX
    */
   static final Command LDX = new Command(
       addressingResult -> new CommandResult(
@@ -987,6 +1005,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #STY
    */
   static final Command LDY = new Command(
       addressingResult -> new CommandResult(
@@ -1015,6 +1035,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #ASL
    */
   static final Command LSR = new Command(
       addressingResult -> {
@@ -1074,6 +1096,9 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #AND
+   * @see #EOR
    */
   static final Command ORA = new Command(
       addressingResult -> {
@@ -1106,6 +1131,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #PLA
    */
   static final Command PHA = new Command(
       addressingResult -> {
@@ -1133,6 +1160,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #PLP
    */
   static final Command PHP = new Command(
       addressingResult ->
@@ -1158,6 +1187,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #PHA
    */
   static final Command PLA = new Command(
       addressingResult ->
@@ -1187,6 +1218,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>from stack</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>from stack</td> </tr>
    * </table>
+   *
+   * @see #PHP
    */
   static final Command PLP = new Command(
       addressingResult ->
@@ -1218,6 +1251,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #ROR
    */
   static final Command ROL = new Command(
       addressingResult -> {
@@ -1260,6 +1295,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #ROL
    */
   static final Command ROR = new Command(
       addressingResult -> {
@@ -1310,6 +1347,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>from stack</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>from stack</td> </tr>
    * </table>
+   *
+   * @see #BRK
    */
   static final Command RTI = new Command(
       addressingResult -> {
@@ -1340,6 +1379,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #JSR
    */
   static final Command RTS = new Command(
       addressingResult ->
@@ -1370,6 +1411,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>yes</td> </tr>
    * </table>
+   *
+   * @see #ADC
    */
   static final Command SBC = new Command(
       addressingResult -> {
@@ -1476,6 +1519,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #LDA
    */
   static final Command STA = new Command(
       addressingResult -> {
@@ -1502,6 +1547,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #LDX
    */
   static final Command STX = new Command(
       addressingResult -> {
@@ -1528,6 +1575,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>no</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #LDY
    */
   static final Command STY = new Command(
       addressingResult -> {
@@ -1554,6 +1603,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TXA
    */
   static final Command TAX = new Command(
       addressingResult -> new CommandResult(
@@ -1578,6 +1629,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TYA
    */
   static final Command TAY = new Command(
       addressingResult -> new CommandResult(
@@ -1602,6 +1655,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TXS
    */
   static final Command TSX = new Command(
       addressingResult ->
@@ -1627,6 +1682,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TAX
    */
   static final Command TXA = new Command(
       addressingResult -> new CommandResult(
@@ -1651,6 +1708,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TSX
    */
   static final Command TXS = new Command(
       addressingResult -> {
@@ -1678,6 +1737,8 @@ class Command implements CommandFunction {
    *   <tr> <td>{@code Z} ({@link Register#isZeroFlagSet()}</td>        <td>yes</td> </tr>
    *   <tr> <td>{@code C} ({@link Register#isCarryFlagSet()}</td>       <td>no</td> </tr>
    * </table>
+   *
+   * @see #TAY
    */
   static final Command TYA = new Command(
       addressingResult -> new CommandResult(
