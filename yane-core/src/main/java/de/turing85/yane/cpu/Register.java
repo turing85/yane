@@ -165,17 +165,17 @@ class Register {
   static final int RESET_VECTOR = 0xFFFC;
 
   /**
-   * Register value A.
+   * Accumulator.
    */
   private int a;
 
   /**
-   * Register value X.
+   * X register.
    */
   private int x;
 
   /**
-   * Register value Y.
+   * Y register.
    */
   private int y;
 
