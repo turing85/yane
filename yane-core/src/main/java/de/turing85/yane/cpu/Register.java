@@ -1,12 +1,9 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import de.turing85.yane.api.*;
 import lombok.*;
 
 /**
- * <p>CPU register implementation.</p>
- *
- * <p>The register holds values for the CPU. Those values do not have a bus address and are thus
+ * <p>The register holds values used by the CPU. Those values do not have a bus address and are thus
  * only accessible by the CPU.</p>
  *
  * <p>The register holds</p>
@@ -82,7 +79,7 @@ import lombok.*;
  *     {@link #RESET_VECTOR}{@code + 1) << 8)}
  *   <li>
  *     a stack pointer ({@link #stackPointer}): a 8-bit value, interpreted as bus address. Since
- *     the 6502 assumes a 16-bit bus, a 8-bit value can only represent a parital address. the stack
+ *     the 6502 assumes a 16-bit bus, a 8-bit value can only represent a partial address. the stack
  *     pointer represents the lower 8 bits of an address,  the higher 8 bits are set to {@code
  *     0x01}. When a value is "stored on the stack", it is written to address {@code 0x01 << 8 |}
  *     {@link #stackPointer}, and the {@link #stackPointer} is decremented by {@code 1}. When a
@@ -197,11 +194,11 @@ class Register {
    */
   private int status;
 
-  public Register() {
+  Register() {
     this(0, 0, 0, INITIAL_STACK_POINTER_VALUE, 0, INITIAL_STATUS_VALUE);
   }
 
-  public Register(CpuBus bus) {
+  Register(CpuBus bus) {
     this(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1)  << 8));
   }
 
@@ -221,7 +218,7 @@ class Register {
    * @param zeroFlag initial value for the zero flag
    * @param carryFlag initial value for the carry flag
    */
-  public Register(
+  Register(
       int a,
       int x,
       int y,
@@ -245,7 +242,7 @@ class Register {
         carryFlag);
   }
 
-  public Register(int programCounter) {
+  Register(int programCounter) {
     this(
         0,
         0,

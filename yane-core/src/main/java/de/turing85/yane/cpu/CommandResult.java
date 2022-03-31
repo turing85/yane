@@ -1,6 +1,5 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import de.turing85.yane.api.*;
 import lombok.*;
 
 /**
@@ -18,7 +17,18 @@ import lombok.*;
 @Value
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 class CommandResult {
+  /**
+   * The updated {@link Register}.
+   */
   Register register;
+
+  /**
+   * The {@link CpuBus} used by the command.
+   */
   CpuBus bus;
+
+  /**
+   * The number of additional cycles needed by the {@link Command}.
+   */
   int additionalCyclesNeeded;
 }

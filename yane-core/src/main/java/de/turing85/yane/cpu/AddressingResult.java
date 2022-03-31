@@ -1,6 +1,5 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import de.turing85.yane.api.*;
 import lombok.*;
 
 /**
@@ -19,8 +18,8 @@ import lombok.*;
  * </ul>
  */
 @Value
-@AllArgsConstructor(access = AccessLevel.PACKAGE)
-class AddressingResult {
+@AllArgsConstructor
+public class AddressingResult {
   /**
    * The updated {@link Register}.
    */
@@ -32,17 +31,17 @@ class AddressingResult {
   CpuBus bus;
 
   /**
-   * The address calculated by this {@link AddressingMode}.
+   * The address calculated by the {@link AddressingMode}.
    */
   int address;
 
   /**
-   * The value read by this {@link AddressingMode}.
+   * The value read by the {@link AddressingMode}.
    */
   int value;
 
   /**
-   * The number of additional cycles needed by this {@link AddressingMode}.
+   * The number of additional cycles needed by the {@link AddressingMode}.
    */
   int additionalCyclesNeeded;
 

@@ -1,6 +1,5 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import de.turing85.yane.api.*;
 import java.util.function.*;
 
 /**

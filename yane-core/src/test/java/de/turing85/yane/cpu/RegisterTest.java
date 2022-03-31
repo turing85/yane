@@ -1,7 +1,6 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
 import static com.google.common.truth.Truth.*;
-import static de.turing85.yane.impl.cpu6502.Register.*;
 
 import org.junit.jupiter.api.*;
 
@@ -21,7 +20,7 @@ class RegisterTest {
       assertThat(register.a()).isEqualTo(0);
       assertThat(register.x()).isEqualTo(0);
       assertThat(register.y()).isEqualTo(0);
-      assertThat(register.stackPointer()).isEqualTo(INITIAL_STACK_POINTER_VALUE);
+      assertThat(register.stackPointer()).isEqualTo(Register.INITIAL_STACK_POINTER_VALUE);
       assertThat(register.programCounter()).isEqualTo(0);
       assertThat(register.isNegativeFlagSet()).isEqualTo(false);
       assertThat(register.isOverflowFlagSet()).isEqualTo(false);
@@ -161,7 +160,7 @@ class RegisterTest {
         // GIVEN
         final int initialProgramCounter = 0xFF;
         final int expectedIncrementedProgramCounter =
-            (initialProgramCounter + 1) & PROGRAM_COUNTER_MASK;
+            (initialProgramCounter + 1) & Register.PROGRAM_COUNTER_MASK;
         final Register register = defaultRegister.programCounter(initialProgramCounter);
 
         // WHEN

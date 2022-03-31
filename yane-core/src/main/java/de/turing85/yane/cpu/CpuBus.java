@@ -1,4 +1,4 @@
-package de.turing85.yane.api;
+package de.turing85.yane.cpu;
 
 public interface CpuBus {
 

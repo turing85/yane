@@ -1,9 +1,8 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import static de.turing85.yane.impl.cpu6502.AddressingMode.*;
-import static de.turing85.yane.impl.cpu6502.Register.*;
+import static de.turing85.yane.cpu.AddressingMode.*;
+import static de.turing85.yane.cpu.Register.*;
 
-import de.turing85.yane.api.*;
 import java.util.function.*;
 import lombok.*;
 import lombok.experimental.Delegate;

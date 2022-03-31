@@ -1,10 +1,9 @@
-package de.turing85.yane.impl.cpu6502;
+package de.turing85.yane.cpu;
 
-import de.turing85.yane.api.Clock;
-import de.turing85.yane.api.CpuBus;
+import de.turing85.yane.Clock;
 import java.util.Set;
 
-public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
+public final class Cpu {
   private static final int RESET_READ_ADDRESS = 0xFFFC;
   private static final int CYCLES_FOR_RESET = 8;
 
@@ -25,11 +24,10 @@ public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
     reset();
   }
 
-  public final Set<Instruction> instructions() {
+  public Set<Instruction> instructions() {
     return Instruction.INSTRUCTIONS;
   }
 
-  @Override
   public void reset() {
     int resetLow = bus.read(RESET_READ_ADDRESS);
     int resetHigh = bus.read(RESET_READ_ADDRESS + 1);
@@ -37,7 +35,6 @@ public class Cpu implements de.turing85.yane.api.Cpu<Instruction> {
     cycles = CYCLES_FOR_RESET;
   }
 
-  @Override
   public boolean tick() {
     return false;
   }
