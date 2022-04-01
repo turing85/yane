@@ -1,6 +1,7 @@
 package de.turing85.yane.cpu;
 
 import static com.google.common.truth.Truth.*;
+import static de.turing85.yane.cpu.Register.*;
 
 import org.junit.jupiter.api.*;
 
@@ -12,7 +13,7 @@ class RegisterTest {
   class ConstructorTest {
     @Test
     @DisplayName("no-args constructor initializes everything with the default values")
-    void everythingShouldBeZeroWhenNoArgsConstructorIsCalled() {
+    void everythingSetToDefaultValues() {
       // WHEN
       final Register register = Register.of();
 
@@ -34,7 +35,7 @@ class RegisterTest {
 
     @Test
     @DisplayName("Sets everything to the expected values when all-args constructor is called")
-    void shouldReturnExpectedValuesWhenAllArgsConstructorIsCalled() {
+    void setEverythingToTheExpectedValues() {
       // GIVEN
       final int expectedA = 1;
       final int expectedX = 2;
@@ -43,6 +44,7 @@ class RegisterTest {
       final int expectedProgramCounter = 5;
       final boolean expectedCarry = true;
       final boolean expectedZero = true;
+      final boolean expectedUnused = true;
       final boolean expectedDisableInterrupt = true;
       final boolean expectedDecimalMode = true;
       final boolean expectedBreakFlag = true;
@@ -57,6 +59,7 @@ class RegisterTest {
           stackPointer,
           expectedProgramCounter,
           expectedNegative,
+          expectedUnused,
           expectedOverflow,
           expectedBreakFlag,
           expectedDecimalMode,
@@ -70,46 +73,42 @@ class RegisterTest {
       assertThat(register.y()).isEqualTo(expectedY);
       assertThat(register.stackPointer()).isEqualTo(stackPointer);
       assertThat(register.programCounter()).isEqualTo(expectedProgramCounter);
-      assertThat(register.isCarryFlagSet()).isEqualTo(expectedCarry);
-      assertThat(register.isZeroFlagSet()).isEqualTo(expectedZero);
-      assertThat(register.isDisableIrqFlagSet()).isEqualTo(expectedDisableInterrupt);
-      assertThat(register.isDecimalModeFlagSet()).isEqualTo(expectedDecimalMode);
-      assertThat(register.isBreakFlagSet()).isEqualTo(expectedBreakFlag);
-      assertThat(register.isOverflowFlagSet()).isEqualTo(expectedOverflow);
       assertThat(register.isNegativeFlagSet()).isEqualTo(expectedNegative);
+      assertThat(register.isOverflowFlagSet()).isEqualTo(expectedOverflow);
+      assertThat(register.isUnusedFlagSet()).isEqualTo(expectedUnused);
+      assertThat(register.isBreakFlagSet()).isEqualTo(expectedBreakFlag);
+      assertThat(register.isDecimalModeFlagSet()).isEqualTo(expectedDecimalMode);
+      assertThat(register.isDisableIrqFlagSet()).isEqualTo(expectedDisableInterrupt);
+      assertThat(register.isZeroFlagSet()).isEqualTo(expectedZero);
+      assertThat(register.isCarryFlagSet()).isEqualTo(expectedCarry);
     }
   }
 
   @Nested
   @DisplayName("Mutator tests")
   class MutatorTest {
-    private Register defaultRegister;
-    private Register allSetRegister;
-
-    @BeforeEach
-    void setup() {
-      defaultRegister = Register.of();
-      allSetRegister = Register.of(
-          1,
-          2,
-          3,
-          4,
-          5,
-          true,
-          true,
-          true,
-          true,
-          true,
-          true,
-          true);
-    }
+    private final Register defaultRegister = Register.of();
+    private final Register allSetRegister = Register.of(
+        1,
+        2,
+        3,
+        4,
+        5,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true);
 
     @Nested
     @DisplayName("Program counter tests")
     class ProgramCounterTests {
       @Test
-      @DisplayName("should get and increment the program counter")
-      void shouldGetAndIncrementTheProgramCounter() {
+      @DisplayName("Get and increment the program counter")
+      void getAndIncrementTheProgramCounter() {
         // GIVEN
         final int initialProgramCounter = 1337;
         final int expectedProgramCounter = 1338;
@@ -124,39 +123,35 @@ class RegisterTest {
       }
 
       @Test
-      @DisplayName("should return expected value when the program counter is mutated")
-      void shouldReturnExpectedValueWhenProgramCounterIsMutated() {
+      @DisplayName("Set program counter")
+      void setProgramCounter() {
         // GIVEN
         final int expectedProgramCounter = 1337;
-        final Register register = defaultRegister;
 
         // WHEN
-        Register actual = register.programCounter(expectedProgramCounter);
+        Register actual = defaultRegister.programCounter(expectedProgramCounter);
 
         // THEN
-        assertThat(actual).isEqualTo(register);
         assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
       }
 
       @Test
-      @DisplayName("should mask the program counter if it is too large")
-      void shouldGetMaskedProgramCounter() {
+      @DisplayName("Mask program counter if it is too large")
+      void maskedProgramCounter() {
         // GIVEN
         final int programCounter = 0xF_ABCD;
         final int expectedProgramCounter = 0xABCD;
-        final Register register = defaultRegister;
 
         // WHEN
-        final Register actual = register.programCounter(programCounter);
+        final Register actual = defaultRegister.programCounter(programCounter);
 
         // THEN
-        assertThat(actual).isEqualTo(register);
         assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
       }
 
       @Test
-      @DisplayName("should wrap program counter during increment")
-      void shouldWrapProgramCounterDuringIncrement() {
+      @DisplayName("Wrap program counter during increment")
+      void wrapProgramCounterDuringIncrement() {
         // GIVEN
         final int initialProgramCounter = 0xFF;
         final int expectedIncrementedProgramCounter =
@@ -167,14 +162,29 @@ class RegisterTest {
         final Register actual = register.incrementProgramCounter();
 
         // THEN
-        assertThat(actual).isEqualTo(register);
         assertThat(actual.programCounter()).isEqualTo(expectedIncrementedProgramCounter);
+      }
+
+      @Test
+      @DisplayName("Wrap program counter during decrement")
+      void wrapProgramCounterDuringDecrement() {
+        // GIVEN
+        final int initialProgramCounter = 0x00;
+        final int expectedDecrementedProgramCounter =
+            (initialProgramCounter - 1) & Register.PROGRAM_COUNTER_MASK;
+        final Register register = defaultRegister.programCounter(initialProgramCounter);
+
+        // WHEN
+        final Register actual = register.decrementProgramCounter();
+
+        // THEN
+        assertThat(actual.programCounter()).isEqualTo(expectedDecrementedProgramCounter);
       }
     }
 
     @Test
-    @DisplayName("should return expected value when register A is mutated")
-    void shouldReturnExpectedValueWhenAIsMutated() {
+    @DisplayName("mutate accumulator")
+    void setAccumulator() {
       // GIVEN
       final int expectedA = 17;
 
@@ -182,13 +192,12 @@ class RegisterTest {
       Register actual = defaultRegister.a(expectedA);
 
       // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
       assertThat(actual.a()).isEqualTo(expectedA);
     }
 
     @Test
-    @DisplayName("should return expected value when register X is mutated")
-    void shouldReturnExpectedValueWhenXIsMutated() {
+    @DisplayName("mutate register X")
+    void mutateX() {
       // GIVEN
       final int expectedX = 17;
 
@@ -196,13 +205,12 @@ class RegisterTest {
       Register actual = defaultRegister.x(expectedX);
 
       // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
       assertThat(actual.x()).isEqualTo(expectedX);
     }
 
     @Test
-    @DisplayName("should return expected value when register Y is mutated")
-    void shouldReturnExpectedValueWhenYIsMutated() {
+    @DisplayName("mutate register Y")
+    void mutateY() {
       // GIVEN
       final int expectedY = 17;
 
@@ -210,7 +218,6 @@ class RegisterTest {
       Register actual = defaultRegister.y(expectedY);
 
       // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
       assertThat(actual.y()).isEqualTo(expectedY);
     }
 
@@ -227,7 +234,6 @@ class RegisterTest {
         Register actual = defaultRegister.stackPointer(stackPointer);
 
         // THEN
-        assertThat(actual).isEqualTo(defaultRegister);
         assertThat(actual.stackPointer()).isEqualTo(stackPointer);
       }
 
@@ -267,10 +273,9 @@ class RegisterTest {
         // GIVEN
         final int stackPointer = 0xF_AB;
         final int expectedStackPointer = 0x00AB;
-        final Register register = defaultRegister;
 
         // WHEN
-        final Register actualRegister = register.stackPointer(stackPointer);
+        final Register actualRegister = defaultRegister.stackPointer(stackPointer);
 
         // THEN
         assertThat(actualRegister.stackPointer())
@@ -309,158 +314,257 @@ class RegisterTest {
       }
     }
 
-    @Test
-    @DisplayName("should enable carry flag when carry flag is set")
-    void shouldReturnTrueWhenCarryFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setCarryFlag();
+    @Nested
+    @DisplayName("Status flag tests")
+    class StatusFlagTests {
+      @Nested
+      @DisplayName("Set Status byte tests")
+      class SetStatusByteTests {
+        @Test
+        @DisplayName("Enable all flags")
+        void enableAll() {
+          // WHEN
+          final Register register = defaultRegister.status(0);
+          
+          // THEN
+          assertThat(register.status()).isEqualTo(0);
+          assertThat(register.isNegativeFlagSet()).isFalse();
+          assertThat(register.isOverflowFlagSet()).isFalse();
+          assertThat(register.isUnusedFlagSet()).isFalse();
+          assertThat(register.isBreakFlagSet()).isFalse();
+          assertThat(register.isDecimalModeFlagSet()).isFalse();
+          assertThat(register.isDisableIrqFlagSet()).isFalse();
+          assertThat(register.isZeroFlagSet()).isFalse();
+          assertThat(register.isCarryFlagSet()).isFalse();
+        }
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(defaultRegister.isCarryFlagSet()).isTrue();
-    }
+        @Test
+        @DisplayName("DisableAll")
+        void disableAll() {
+          // WHEN
+          final Register register = defaultRegister.status(0xFF);
 
-    @Test
-    @DisplayName("should disable carry flag when carry flag is unset")
-    void shouldReturnFalseWhenCarryFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetCarryFlag();
+          // THEN
+          assertThat(register.status()).isEqualTo(0xFF);
+          assertThat(register.isNegativeFlagSet()).isTrue();
+          assertThat(register.isOverflowFlagSet()).isTrue();
+          assertThat(register.isUnusedFlagSet()).isTrue();
+          assertThat(register.isBreakFlagSet()).isTrue();
+          assertThat(register.isDecimalModeFlagSet()).isTrue();
+          assertThat(register.isDisableIrqFlagSet()).isTrue();
+          assertThat(register.isZeroFlagSet()).isTrue();
+          assertThat(register.isCarryFlagSet()).isTrue();
+        }
+      }
+      
+      @Nested
+      @DisplayName("Negative Flag tests")
+      class NegativeFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setNegativeFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isCarryFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isNegativeFlagSet()).isTrue();
+          assertThat(actual.status() & NEGATIVE_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable zero flag when zero flag is set")
-    void shouldReturnTrueWhenZeroFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setZeroFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetNegativeFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isZeroFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isNegativeFlagSet()).isFalse();
+          assertThat(actual.status() & NEGATIVE_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable zero bit when zero flag is unset")
-    void shouldReturnFalseWhenZeroFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetZeroFlag();
+      @Nested
+      @DisplayName("Overflow Flag tests")
+      class OverflowFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setOverflowFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isZeroFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isOverflowFlagSet()).isTrue();
+          assertThat(actual.status() & OVERFLOW_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable interrupt flag when disable interrupt flag is set")
-    void shouldReturnTrueWhenInterruptFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setDisableIrqFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetOverflowFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isDisableIrqFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isOverflowFlagSet()).isFalse();
+          assertThat(actual.status() & OVERFLOW_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable interrupt flag when disable interrupt flag is unset")
-    void shouldReturnFalseWhenDisableInterruptIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetDisableIrqFlag();
+      @Nested
+      @DisplayName("Unused Flag tests")
+      class UnusedFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setUnusedFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isDisableIrqFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isUnusedFlagSet()).isTrue();
+          assertThat(actual.status() & UNUSED_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable decimal mode flag when decimal mode flag is set")
-    void shouldReturnTrueWhenDecimalModeFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setDecimalModeFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetUnusedFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isDecimalModeFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isUnusedFlagSet()).isFalse();
+          assertThat(actual.status() & UNUSED_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable decimal mode flag when decimal mode flag is unset")
-    void shouldReturnFalseWhenDecimalModeFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetDecimalModeFlag();
+      @Nested
+      @DisplayName("Break Flag tests")
+      class BreakFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setBreakFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isDecimalModeFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isBreakFlagSet()).isTrue();
+          assertThat(actual.status() & BREAK_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable break flag when break flag is set")
-    void shouldReturnTrueWhenBreakFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setBreakFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetBreakFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isBreakFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isBreakFlagSet()).isFalse();
+          assertThat(actual.status() & BREAK_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable break flag when break flag is unset")
-    void shouldReturnFalseWhenBreakFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetBreakFlag();
+      @Nested
+      @DisplayName("Decimal Flag tests")
+      class DecimalFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setDecimalModeFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isBreakFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isDecimalModeFlagSet()).isTrue();
+          assertThat(actual.status() & DECIMAL_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable overflow flag when overflow flag is set")
-    void shouldReturnTrueWhenOverflowFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setOverflowFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetDecimalModeFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isOverflowFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isDecimalModeFlagSet()).isFalse();
+          assertThat(actual.status() & DECIMAL_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable overflow flag when overflow flag is unset")
-    void shouldReturnFalseWhenOverflowFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetOverflowFlag();
+      @Nested
+      @DisplayName("Disable IRQ Flag tests")
+      class DisableIrqFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setDisableIrqFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isOverflowFlagSet()).isFalse();
-    }
+          // THEN
+          assertThat(actual.isDisableIrqFlagSet()).isTrue();
+          assertThat(actual.status() & DISABLE_IRQ_MASK).isNotEqualTo(0);
+        }
 
-    @Test
-    @DisplayName("should enable negative flag when negative flag is set")
-    void shouldReturnTrueWhenNegativeFlagIsSet() {
-      // WHEN
-      final Register actual = defaultRegister.setNegativeFlag();
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetDisableIrqFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(defaultRegister);
-      assertThat(actual.isNegativeFlagSet()).isTrue();
-    }
+          // THEN
+          assertThat(actual.isDisableIrqFlagSet()).isFalse();
+          assertThat(actual.status() & DISABLE_IRQ_MASK).isEqualTo(0);
+        }
+      }
 
-    @Test
-    @DisplayName("should disable negative flag when negative flag is unset")
-    void shouldReturnFalseWhenNegativeFlagIsUnset() {
-      // WHEN
-      final Register actual = allSetRegister.unsetNegativeFlag();
+      @Nested
+      @DisplayName("Zero Flag tests")
+      class ZeroFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setZeroFlag();
 
-      // THEN
-      assertThat(actual).isEqualTo(allSetRegister);
-      assertThat(actual.isNegativeFlagSet()).isFalse();
+          // THEN
+          assertThat(actual.isZeroFlagSet()).isTrue();
+          assertThat(actual.status() & ZERO_MASK).isNotEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetZeroFlag();
+
+          // THEN
+          assertThat(actual.isZeroFlagSet()).isFalse();
+          assertThat(actual.status() & ZERO_MASK).isEqualTo(0);
+        }
+      }
+
+      @Nested
+      @DisplayName("Carry Flag tests")
+      class CarryFlagTests {
+        @Test
+        @DisplayName("enable")
+        void enable() {
+          // WHEN
+          final Register actual = defaultRegister.setCarryFlag();
+
+          // THEN
+          assertThat(actual.isCarryFlagSet()).isTrue();
+
+          assertThat(actual.status() & CARRY_MASK).isNotEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("disable")
+        void disable() {
+          // WHEN
+          final Register actual = allSetRegister.unsetCarryFlag();
+
+          // THEN
+          assertThat(actual.isCarryFlagSet()).isFalse();
+          assertThat(actual.status() & CARRY_MASK).isEqualTo(0);
+        }
+      }
     }
   }
 }

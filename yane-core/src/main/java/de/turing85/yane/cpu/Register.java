@@ -186,6 +186,8 @@ public interface Register {
    *     initial value for the negative flag
    * @param overflowFlag
    *     initial value for the overflow flag
+   * @param unusedFlag
+   *     initial value for the unused flag
    * @param breakFlag
    *     initial value for the break flag
    * @param decimalFlag
@@ -200,7 +202,7 @@ public interface Register {
    * @return a register with the specified values
    *
    * @see Impl#Impl(int, int, int, int, int, boolean, boolean, boolean, boolean, boolean, boolean,
-   *     boolean)
+   *     boolean, boolean)
    */
   static Register of(
       int a,
@@ -210,6 +212,7 @@ public interface Register {
       int programCounter,
       boolean negativeFlag,
       boolean overflowFlag,
+      boolean unusedFlag,
       boolean breakFlag,
       boolean decimalFlag,
       boolean disableIrqFlag,
@@ -223,6 +226,7 @@ public interface Register {
         programCounter,
         negativeFlag,
         overflowFlag,
+        unusedFlag,
         breakFlag,
         decimalFlag,
         disableIrqFlag,
@@ -234,6 +238,8 @@ public interface Register {
    * Gets the value of the accumulator.
    *
    * @return the value of the accumulator
+   *
+   * @see #a(int)
    */
   int a();
 
@@ -244,6 +250,8 @@ public interface Register {
    *     the new value for the accumulator
    *
    * @return self, for method chaining
+   *
+   * @see #a(int)
    */
   Register a(int a);
 
@@ -251,6 +259,8 @@ public interface Register {
    * Gets the value of the X register.
    *
    * @return the value of the X register
+   *
+   * @see #x(int)
    */
   int x();
 
@@ -261,6 +271,8 @@ public interface Register {
    *     the new value for the X register
    *
    * @return self, for method chaining
+   *
+   * @see #x()
    */
   Register x(int x);
 
@@ -268,6 +280,8 @@ public interface Register {
    * Gets the value of the Y register.
    *
    * @return the value of the Y register
+   *
+   * @see #y(int)
    */
   int y();
 
@@ -278,6 +292,8 @@ public interface Register {
    *     the new value for the Y register
    *
    * @return self, for method chaining
+   *
+   * @see #y()
    */
   Register y(int y);
 
@@ -285,6 +301,10 @@ public interface Register {
    * Gets the value of the stack pointer.
    *
    * @return the value of the stack pointer
+   *
+   * @see #stackPointer(int)
+   * @see #getAndDecrementStackPointer()
+   * @see #incrementAndGetStackPointer()
    */
   int stackPointer();
 
@@ -295,27 +315,44 @@ public interface Register {
    *     the new value for the stack pointer
    *
    * @return self, for method chaining
+   *
+   * @see #stackPointer()
+   * @see #getAndDecrementStackPointer()
+   * @see #incrementAndGetStackPointer()
    */
   Register stackPointer(int stackPointer);
-
-  /**
-   * Increments the value of the stack pointer by one, and returns it.
-   *
-   * @return the stack pointer value, after incrementing
-   */
-  int incrementAndGetStackPointer();
 
   /**
    * Decrements the value of the stack pointer by one, and returns it.
    *
    * @return the stack pointer value, before decrementing
+   *
+   * @see #stackPointer()
+   * @see #stackPointer(int)
+   * @see #incrementAndGetStackPointer()
    */
   int getAndDecrementStackPointer();
+
+  /**
+   * Increments the value of the stack pointer by one, and returns it.
+   *
+   * @return the stack pointer value, after incrementing
+   *
+   * @see #stackPointer()
+   * @see #stackPointer(int)
+   * @see #getAndDecrementStackPointer()
+   */
+  int incrementAndGetStackPointer();
 
   /**
    * Gets the value of the program counter.
    *
    * @return the value of the program counter
+   *
+   * @see #programCounter(int)
+   * @see #getAndIncrementProgramCounter()
+   * @see #incrementProgramCounter()
+   * @see #decrementProgramCounter()
    */
   int programCounter();
 
@@ -326,6 +363,11 @@ public interface Register {
    *     the new value for the program counter
    *
    * @return self, for method chaining
+   *
+   * @see #programCounter()
+   * @see #getAndIncrementProgramCounter()
+   * @see #incrementProgramCounter()
+   * @see #decrementProgramCounter()
    */
   Register programCounter(int programCounter);
 
@@ -333,6 +375,11 @@ public interface Register {
    * Increments the value of the stack pointer by one, and returns it.
    *
    * @return the stack pointer value, after incrementing
+   *
+   * @see #programCounter()
+   * @see #programCounter(int)
+   * @see #incrementProgramCounter()
+   * @see #decrementProgramCounter()
    */
   int getAndIncrementProgramCounter();
 
@@ -340,6 +387,11 @@ public interface Register {
    * Increments the value of the program counter.
    *
    * @return self, for method chaining
+   *
+   * @see #programCounter()
+   * @see #programCounter(int)
+   * @see #getAndIncrementProgramCounter()
+   * @see #decrementProgramCounter()
    */
   Register incrementProgramCounter();
 
@@ -347,6 +399,11 @@ public interface Register {
    * Decrements the value of the program counter.
    *
    * @return self, for method chaining
+   *
+   * @see #programCounter()
+   * @see #programCounter(int)
+   * @see #getAndIncrementProgramCounter()
+   * @see #incrementProgramCounter()
    */
   Register decrementProgramCounter();
 
@@ -367,6 +424,39 @@ public interface Register {
    * </ul>
    *
    * @return the status, as described above
+   *
+   * @see #negativeFlag(boolean)
+   * @see #setNegativeFlag()
+   * @see #unsetNegativeFlag()
+   * @see #isNegativeFlagSet()
+   * @see #overflowFlag(boolean)
+   * @see #setOverflowFlag()
+   * @see #unsetOverflowFlag()
+   * @see #isOverflowFlagSet()
+   * @see #unusedFlag(boolean)
+   * @see #setUnusedFlag()
+   * @see #unsetUnusedFlag()
+   * @see #isUnusedFlagSet()
+   * @see #breakFlag(boolean)
+   * @see #setBreakFlag()
+   * @see #unsetBreakFlag()
+   * @see #isBreakFlagSet()
+   * @see #decimalModeFlag(boolean)
+   * @see #setDecimalModeFlag()
+   * @see #unsetDecimalModeFlag()
+   * @see #isDecimalModeFlagSet()
+   * @see #disableIrqFlag(boolean)
+   * @see #setDisableIrqFlag()
+   * @see #unsetDisableIrqFlag()
+   * @see #isDisableIrqFlagSet()
+   * @see #zeroFlag(boolean)
+   * @see #setZeroFlag()
+   * @see #unsetZeroFlag()
+   * @see #isZeroFlagSet()
+   * @see #carryFlag(boolean)
+   * @see #setCarryFlag()
+   * @see #unsetCarryFlag()
+   * @see #isCarryFlagSet()
    */
   int status();
 
@@ -384,7 +474,7 @@ public interface Register {
    *     bit 3 is set to the {@code D} (decimal mode, {@link #decimalModeFlag(boolean)}) flag
    *   </li>
    *   <li>
-   *     bit 2 is set to the {@code I} (disable IRQ, {@link #setDisableIrqFlag(boolean)} flag
+   *     bit 2 is set to the {@code I} (disable IRQ, {@link #disableIrqFlag(boolean)} flag
    *   </li>
    *   <li>bit 1 is set to the {@code Z} (zero, {@link #zeroFlag(boolean)}) flag </li>
    *   <li>bit 0 is set to the {@code C} (carry, {@link #carryFlag(boolean)}) flag </li>
@@ -656,7 +746,7 @@ public interface Register {
    *
    * @return self, for method chaining
    */
-  default Register setDisableIrqFlag(boolean disableIrqFlag) {
+  default Register disableIrqFlag(boolean disableIrqFlag) {
     if (disableIrqFlag) {
       setDisableIrqFlag();
     } else {
@@ -860,6 +950,8 @@ public interface Register {
      *     initial value for {@link #programCounter}
      * @param negativeFlag
      *     initial value for the negative flag
+     * @param unusedFlag
+     *     initial value for the unused flag
      * @param overflowFlag
      *     initial value for the overflow flag
      * @param breakFlag
@@ -874,7 +966,7 @@ public interface Register {
      *     initial value for the carry flag
      *
      * @see Register#of(int, int, int, int, int, boolean, boolean, boolean, boolean, boolean,
-     *     boolean, boolean)
+     *     boolean, boolean, boolean)
      */
     private Impl(
         int a,
@@ -884,6 +976,7 @@ public interface Register {
         int programCounter,
         boolean negativeFlag,
         boolean overflowFlag,
+        boolean unusedFlag,
         boolean breakFlag,
         boolean decimalFlag,
         boolean disableIrqFlag,
@@ -893,6 +986,7 @@ public interface Register {
       initializeStatus(
           negativeFlag,
           overflowFlag,
+          unusedFlag,
           breakFlag,
           decimalFlag,
           disableIrqFlag,
@@ -923,6 +1017,8 @@ public interface Register {
      *     whether the negative flag should be set
      * @param overflowFlag
      *     whether the overflow flag should be set
+     * @param unusedFlag
+     *     whether the unused flag should be set
      * @param breakFlag
      *     whether the break flag should be set
      * @param decimalFlag
@@ -937,6 +1033,7 @@ public interface Register {
     private void initializeStatus(
         boolean negativeFlag,
         boolean overflowFlag,
+        boolean unusedFlag,
         boolean breakFlag,
         boolean decimalFlag,
         boolean disableIrqFlag,
@@ -947,6 +1044,9 @@ public interface Register {
       }
       if (overflowFlag) {
         setOverflowFlag();
+      }
+      if (unusedFlag) {
+        setUnusedFlag();
       }
       if (breakFlag) {
         setBreakFlag();
