@@ -14,9 +14,9 @@ import lombok.experimental.Delegate;
  * from which the {@code value} was read. For example, the command {@link #ASL} (Arithmetic shift
  * left) shifts the value to the left by 1 position and writes it back to its original address. If
  * the value was read from the accumulator (represented by the addressing mode {@link
- * AddressingMode#ACCUMULATOR}), it will be written to {@link Register#a()} (which has no explicit
- * address on the bus). Some commands only need the {@link AddressingResult#value}, some need the
- * {@link AddressingResult#address}, some need both, and some need none.</p>
+ * AddressingMode#ACCUMULATOR}), it will be written to {@link Register#a(int)} (which has no
+ * explicit address on the bus). Some commands only need the {@link AddressingResult#value}, some
+ * need the {@link AddressingResult#address}, some need both, and some need none.</p>
  *
  * <p>As described in {@link CommandFunction}, each {@link Command} takes a {@link
  * AddressingResult} as input and returns a {@link CommandResult}.</p>
@@ -27,7 +27,7 @@ import lombok.experimental.Delegate;
  * <p>In the following, if we talk about {@code value} and {@code address}, we refer to
  * {@link AddressingResult#value} and {@link AddressingResult#address}, unless otherwise noted.</p>
  *
- * <p>The {@link Register}-flags are set as expected, unless otherwise noted. The flags are set
+ * <p>The {@link Register} flags are set as expected, unless otherwise noted. The flags are set
  * after the core semantic of the command have been executed. For example, when {@code #ADC} (Add
  * with Carry) is executed, the whole addition (including the evaluation of the {{@code C} ({@link
  * Register#isCarryFlagSet()}} and increasing the final result by {@code 1} if it is set) is
@@ -96,7 +96,7 @@ class Command implements CommandFunction {
   /**
    * <p>Logic And command.</p>
    *
-   * <p>The {@code value} "and"-ed {@link Register#a()} and written to {@link Register#a()}.</p>
+   * <p>The {@code value} "and"-ed {@link Register#a()} and written to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -132,7 +132,7 @@ class Command implements CommandFunction {
   /**
    * <p>Arithmetic Shift left command.</p>
    *
-   * <p>The {@code value} logically shifted by 1 position and written back.</p>
+   * <p>The {@code value} is logically shifted by 1 position to the left and written back.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -173,7 +173,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Carry Clear command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code C}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code C} flag
    * ({@link Register#isCarryFlagSet()}) is not set.</p>
    *
    * <table border="1">
@@ -205,7 +205,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Carry Set command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code C}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code C} flag
    * ({@link Register#isCarryFlagSet()}) is set.</p>
    *
    * <table border="1">
@@ -237,7 +237,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Result Zero command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code Z}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code Z} flag
    * ({@link Register#isZeroFlagSet()}) is set.</p>
    *
    * <table border="1">
@@ -306,7 +306,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Result Minus command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code N}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code N} flag
    * ({@link Register#isNegativeFlagSet()}) is set.</p>
    *
    * <table border="1">
@@ -338,7 +338,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Result not Equal command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code Z}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code Z} flag
    * ({@link Register#isZeroFlagSet()}) is not set.</p>
    *
    * <table border="1">
@@ -370,7 +370,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Result Plus command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code N}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code N} flag
    * ({@link Register#isNegativeFlagSet()}) is not set.</p>
    *
    * <table border="1">
@@ -409,9 +409,9 @@ class Command implements CommandFunction {
    * <ul>
    *   <li> writes the current program counter to the stack (first the higher 8 bits, then lower
    *        8 bits)
-   *   <li> Sets the {@link Register#isBreakFlagSet()}-flag
+   *   <li> Sets the {@link Register#isBreakFlagSet()} flag
    *   <li> pushes the {@link Register#status} to the stack
-   *   <li> Unsets the {@link Register#isBreakFlagSet()}-flag
+   *   <li> Unsets the {@link Register#isBreakFlagSet()} flag
    *   <li> Sets {@link Register#programCounter} to {@code (bus.read(}{@link
    *        #FORCE_BREAK_PROGRAM_COUNTER}{@code ) << 8) | bus.read(}{@link
    *        #FORCE_BREAK_PROGRAM_COUNTER}{@code )}
@@ -435,6 +435,7 @@ class Command implements CommandFunction {
       addressingResult -> {
         final Bus bus = addressingResult.bus();
         final Register register = addressingResult.register()
+            .setDisableIrqFlag()
             .setBreakFlag()
             .incrementProgramCounter();
         pushProgramCounterToStack(register, bus);
@@ -450,7 +451,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Overflow Clear command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code V}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code V} flag
    * ({@link Register#isOverflowFlagSet()}) is not set.</p>
    *
    * <table border="1">
@@ -482,7 +483,7 @@ class Command implements CommandFunction {
   /**
    * <p>Branch on Overflow Set command.</p>
    *
-   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code V}-flag
+   * <p>Sets {@link Register#programCounter()} to {@code address} if the {@code V} flag
    * ({@link Register#isOverflowFlagSet()}) is set.</p>
    *
    * <table border="1">
@@ -514,7 +515,7 @@ class Command implements CommandFunction {
   /**
    * <p>Clear Carry flag command.</p>
    *
-   * <p>Clears the {@code C}-flag ({@link Register#isCarryFlagSet()}).</p>
+   * <p>Clears the {@code C} flag ({@link Register#isCarryFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -538,7 +539,7 @@ class Command implements CommandFunction {
   /**
    * <p>Clear Decimal mode flag command.</p>
    *
-   * <p>Clears the {@code D}-flag ({@link Register#isDecimalModeFlagSet()}).</p>
+   * <p>Clears the {@code D} flag ({@link Register#isDecimalModeFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -562,7 +563,7 @@ class Command implements CommandFunction {
   /**
    * <p>Clear Disable IRQ flag command.</p>
    *
-   * <p>Clears the {@code I}-flag ({@link Register#isDisableIrqFlagSet()}).</p>
+   * <p>Clears the {@code I} flag ({@link Register#isDisableIrqFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -587,7 +588,7 @@ class Command implements CommandFunction {
   /**
    * <p>Clear Overflow flag command.</p>
    *
-   * <p>Clears the {@code V}-flag ({@link Register#isOverflowFlagSet()}).</p>
+   * <p>Clears the {@code V} flag ({@link Register#isOverflowFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -615,11 +616,11 @@ class Command implements CommandFunction {
    * <p>Compares {@link AddressingResult#value} with {@link Register#a()}. Sets</p>
    *
    * <ul>
-   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *   <li> the {@code N} flag ({@link Register#isNegativeFlagSet()}) if
    *        {@link AddressingResult#value}{@code  > }{@link Register#a()}
-   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code Z} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  == }{@link Register#a()}
-   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code C} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  <= }{@link Register#a()}
    * </ul>
    *
@@ -655,11 +656,11 @@ class Command implements CommandFunction {
    * <p>Compares {@link AddressingResult#value} with {@link Register#x()}. Sets</p>
    *
    * <ul>
-   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *   <li> the {@code N} flag ({@link Register#isNegativeFlagSet()}) if
    *        {@link AddressingResult#value}{@code  > }{@link Register#x()}
-   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code Z} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  == }{@link Register#x()}
-   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code C} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  <= }{@link Register#x()}
    * </ul>
    *
@@ -695,11 +696,11 @@ class Command implements CommandFunction {
    * <p>Compares {@link AddressingResult#value} with {@link Register#y()}. Sets</p>
    *
    * <ul>
-   *   <li> the {@code N}-flag ({@link Register#isNegativeFlagSet()}) if
+   *   <li> the {@code N} flag ({@link Register#isNegativeFlagSet()}) if
    *        {@link AddressingResult#value}{@code  > }{@link Register#y()}
-   *   <li> the {@code Z}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code Z} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  == }{@link Register#y()}
-   *   <li> the {@code C}-flag ({@link Register#isZeroFlagSet()}) if
+   *   <li> the {@code C} flag ({@link Register#isZeroFlagSet()}) if
    *        {@link AddressingResult#value}{@code  <= }{@link Register#y()}
    * </ul>
    *
@@ -736,7 +737,7 @@ class Command implements CommandFunction {
    * {@link AddressingResult#address}.</p>
    *
    * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
-   * {@link Register#a()} instead.</p>
+   * {@link Register#a(int)} instead.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -767,7 +768,7 @@ class Command implements CommandFunction {
   /**
    * <p>Decrement {@link Register#x()} Command.</p>
    *
-   * <p>Decrements {@link Register#x()} by 1, and writes it back to {@link Register#y()}.</p>
+   * <p>Decrements {@link Register#x()} by 1, and writes it back to {@link Register#x(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -796,7 +797,7 @@ class Command implements CommandFunction {
   /**
    * <p>Decrement {@link Register#y()} Command.</p>
    *
-   * <p>Decrements {@link Register#y()} by 1, and writes it back to {@link Register#y()}.</p>
+   * <p>Decrements {@link Register#y()} by 1, and writes it back to {@link Register#y(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -826,7 +827,7 @@ class Command implements CommandFunction {
    * <p>Exclusive-Or Command.</p>
    *
    * <p>Exclusive-Ors {@link AddressingResult#value} with {@link Register#a()} and writes the result
-   * back to {@link Register#a()}.</p>
+   * back to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -864,7 +865,7 @@ class Command implements CommandFunction {
    * {@link AddressingResult#address}.</p>
    *
    * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
-   * {@link Register#a()} instead.</p>
+   * {@link Register#a(int)} instead.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -895,7 +896,7 @@ class Command implements CommandFunction {
   /**
    * <p>Increment {@link Register#x()} Command.</p>
    *
-   * <p>Increments {@link Register#x()} by 1, and writes it back to {@link Register#x()}.</p>
+   * <p>Increments {@link Register#x()} by 1, and writes it back to {@link Register#x(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -924,7 +925,7 @@ class Command implements CommandFunction {
   /**
    * <p>Increment {@link Register#y()} Command.</p>
    *
-   * <p>Increments {@link Register#y()} by 1, and writes it back to {@link Register#y()}.</p>
+   * <p>Increments {@link Register#y()} by 1, and writes it back to {@link Register#y(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1011,7 +1012,7 @@ class Command implements CommandFunction {
   /**
    * <p>Load value into Accumulator Command.</p>
    *
-   * <p>Sets {@link Register#a()} to {@link AddressingResult#value}.</p>
+   * <p>Sets {@link Register#a(int)} to {@link AddressingResult#value}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1037,7 +1038,7 @@ class Command implements CommandFunction {
   /**
    * <p>Load value into X register Command.</p>
    *
-   * <p>Sets {@link Register#x()} to {@link AddressingResult#value}.</p>
+   * <p>Sets {@link Register#x(int)} to {@link AddressingResult#value}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1063,7 +1064,7 @@ class Command implements CommandFunction {
   /**
    * <p>Load value into Y Command.</p>
    *
-   * <p>Sets {@link Register#y()} to {@link AddressingResult#value}.</p>
+   * <p>Sets {@link Register#y(int)} to {@link AddressingResult#value}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1093,7 +1094,7 @@ class Command implements CommandFunction {
    * to {@link AddressingResult#address}.</p>
    *
    * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
-   * {@link Register#a()} instead.</p>
+   * {@link Register#a(int)} instead.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1154,7 +1155,7 @@ class Command implements CommandFunction {
    * <p>Or with Accumulator command.</p>
    *
    * <p>Ors {@link AddressingResult#value} with {@link Register#a()} and writes the result back to
-   * {@link Register#a()}.</p>
+   * {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1245,7 +1246,7 @@ class Command implements CommandFunction {
   /**
    * <p>Pull Accumulator from Stack command.</p>
    *
-   * <p>Pulls {@link Register#a()} from the stack.</p>
+   * <p>Pulls {@link Register#a(int)} from the stack.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1309,7 +1310,7 @@ class Command implements CommandFunction {
    * {@link AddressingResult#address}.</p>
    *
    * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
-   * {@link Register#a()} instead.</p>
+   * {@link Register#a(int)} instead.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1353,7 +1354,7 @@ class Command implements CommandFunction {
    * {@link AddressingResult#address}.</p>
    *
    * <p>If {@link AddressingMode#ACCUMULATOR} was used, the result is written back to
-   * {@link Register#a()} instead.</p>
+   * {@link Register#a(int)} instead.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1405,7 +1406,7 @@ class Command implements CommandFunction {
    * </ul>
    *
    * <p>The {@code B}- ({@link Register#isBreakFlagSet()}) and {@code U}- ({@link
-   * Register#isUnusedFlagSet()})-flags are ignored when {@link Register#status()} is pulled.</p>
+   * Register#isUnusedFlagSet()}) flags are ignored when {@link Register#status()} is pulled.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1466,9 +1467,9 @@ class Command implements CommandFunction {
    * <p>Subtract with Borrow command.</p>
    *
    * <p>Subtracts {@link AddressingResult#value} from {@link Register#a()} and writes the result
-   * back to {@link Register#a()}.</p>
+   * back to {@link Register#a(int)}.</p>
    *
-   * <p>If the {@code C}-flag ({@link Register#isCarryFlagSet()}) is set, the final result is
+   * <p>If the {@code C} flag ({@link Register#isCarryFlagSet()}) is set, the final result is
    * decremented by {@code 1}.</p>
    *
    * <table border="1">
@@ -1507,7 +1508,7 @@ class Command implements CommandFunction {
   /**
    * <p>Set Carry flag command.</p>
    *
-   * <p>Sets the {@code C}-flag ({@link Register#isCarryFlagSet()}).</p>
+   * <p>Sets the {@code C} flag ({@link Register#isCarryFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1529,7 +1530,7 @@ class Command implements CommandFunction {
   /**
    * <p>Set Decimal mode flag command.</p>
    *
-   * <p>Sets the {@code D}-flag ({@link Register#isDecimalModeFlagSet()}).</p>
+   * <p>Sets the {@code D} flag ({@link Register#isDecimalModeFlagSet()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1553,7 +1554,7 @@ class Command implements CommandFunction {
   /**
    * <p>Set Disable IRQ flag command.</p>
    *
-   * <p>Sets the {@code I}-flag ({@link Register#isDisableIrqFlagSet()} ()}).</p>
+   * <p>Sets the {@code I} flag ({@link Register#isDisableIrqFlagSet()} ()}).</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1577,7 +1578,7 @@ class Command implements CommandFunction {
   /**
    * <p>Store Accumulator command.</p>
    *
-   * <p>Writes the value of {@link Register#a()} to {@link AddressingResult#address}.</p>
+   * <p>Writes the value of {@link Register#a()} to {@code address}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1605,7 +1606,7 @@ class Command implements CommandFunction {
   /**
    * <p>Store X register command.</p>
    *
-   * <p>Writes the value of {@link Register#x()} to {@link AddressingResult#address}.</p>
+   * <p>Writes the value of {@link Register#x()} to {@code address}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1633,7 +1634,7 @@ class Command implements CommandFunction {
   /**
    * <p>Store Y register command.</p>
    *
-   * <p>Writes the value of {@link Register#y()} to {@link AddressingResult#address}.</p>
+   * <p>Writes the value of {@link Register#y()} to {@code address}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1661,7 +1662,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer Accumulator to X register.</p>
    *
-   * <p>Writes the value of {@link Register#a()} to {@link Register#x()}.</p>
+   * <p>Writes the value of {@link Register#a()} to {@link Register#x(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1687,7 +1688,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer Accumulator to Y register.</p>
    *
-   * <p>Writes the value of {@link Register#a()} to {@link Register#y()}.</p>
+   * <p>Writes the value of {@link Register#a()} to {@link Register#y(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1713,7 +1714,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer Stack pointer to X register.</p>
    *
-   * <p>Transfers {@link Register#stackPointer()} to {@link Register#x()}.</p>
+   * <p>Transfers {@link Register#stackPointer()} to {@link Register#x(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1740,7 +1741,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer X register to Accumulator.</p>
    *
-   * <p>Transfers {@link Register#x()} to {@link Register#a()}.</p>
+   * <p>Transfers {@link Register#x()} to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1766,7 +1767,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer X register to Stack pointer.</p>
    *
-   * <p>Transfers {@link Register#x()} to {@link Register#stackPointer()}.</p>
+   * <p>Transfers {@link Register#x()} to {@link Register#stackPointer(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1795,7 +1796,7 @@ class Command implements CommandFunction {
   /**
    * <p>Transfer Y register to Accumulator.</p>
    *
-   * <p>Transfers {@link Register#y()} to {@link Register#a()}.</p>
+   * <p>Transfers {@link Register#y()} to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -2072,7 +2073,7 @@ class Command implements CommandFunction {
    * <p>Stores a {@code value}, depending on the {@code address}.</p>
    *
    * <p>If {@code address} is {@link AddressingMode#IMPLIED_LOADED_ADDRESS}, then {@code value}
-   * is written to {@link Register#a()}. Otherwise, the {@code value} is written to the {@link
+   * is written to {@link Register#a(int)}. Otherwise, the {@code value} is written to the {@link
    * Bus} at address {@code address}.</p>
    *
    * @param address

@@ -131,7 +131,7 @@ class AddressingMode implements AddressingModeFunction {
    *
    * <p>To construct the {@code address}, this mode reads two byte values from the {@link Bus}
    * at addresses {@link Register#programCounter()} ({@code PC_LOW}) and {@link
-   * Register#programCounter()}{@code + 1} ({@code PC_HIGH}). Then a 16-bit address is constructed
+   * Register#programCounter()}{@code  + 1} ({@code PC_HIGH}). Then a 16-bit address is constructed
    * by using {@code PC_LOW} as the 8 lower bits and {@code PC_HIGH} as the 8 higher bits.</p>
    *
    * <p>The {@code value} of is then read from the {@code address}.</p>
@@ -173,8 +173,8 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Absolute addressing mode with X register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two byte values from the {@link Bus}
-   * at addresses {@link Register#programCounter()} ({@code addressHigh}) and {@link
-   * Register#programCounter()}{@code + 1} ({@code addressLow}). Then a 16-bit address is
+   * at addresses {@link Register#programCounter()} ({@code addressLow}) and {@link
+   * Register#programCounter()}{@code  + 1} ({@code addressHigh}). Then a 16-bit address is
    * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
    * higher bits. We will call this address {@code address}. Finally, the value of
    * {@link Register#x()} is added to {@code address}. We will call this address
@@ -234,8 +234,8 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Absolute addressing mode with Y register offset.</p>
    *
    * <p>To construct the {@code address}, this mode reads two byte values from the {@link Bus}
-   * at addresses {@link Register#programCounter()} ({@code addressHigh}) and {@link
-   * Register#programCounter()}{@code + 1} ({@code addressLow}). Then a 16-bit address is
+   * at addresses {@link Register#programCounter()} ({@code addressLow}) and {@link
+   * Register#programCounter()}{@code  + 1} ({@code addressHigh}). Then a 16-bit address is
    * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
    * higher bits. We will call this address {@code address}. Finally, the value of {@link
    * Register#y()} is added to {@code address}. We will call this address {@code addressPlusY}.</p>
@@ -363,8 +363,8 @@ class AddressingMode implements AddressingModeFunction {
    * <p>Indirect addressing mode.</p>
    *
    * <p>To construct the {@code address}, this mode reads two byte values from the {@link Bus}
-   * at addresses {@link Register#programCounter()} ({@code indirectAddressHigh}) and {@link
-   * Register#programCounter()}{@code + 1} ({@code indirectAddressLow}). Then a 16-bit address is
+   * at addresses {@link Register#programCounter()} ({@code indirectAddressLow}) and {@link
+   * Register#programCounter()}{@code  + 1} ({@code indirectAddressHigh}). Then a 16-bit address is
    * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
    * higher bits. We will call this address {@code indirectAddress}. A third and fourth read is made
    * to addresses {@code indirectAddress} and {@code indirectAddress + 1}, again interpreting the
@@ -372,9 +372,9 @@ class AddressingMode implements AddressingModeFunction {
    * value from {@code address} is read in a fifth read.</p>
    *
    * <p>There is a hardware bug in the 6502 processor: if the lower 8 bits of {@code
-   * indirectAddress} are all set to {@code 1}, then, {@code addressLow} is not read from {@code
+   * indirectAddress} are all set to {@code 1}, then, {@code addressHigh} is not read from {@code
    * indirectAddress + 1}, but from {@code ((indirectLow + 1) & 0x00FF) | (indirectHigh << 8)}.So
-   * for example, when {@code indirectAddress} has value {@code 0x01FF}, then {@code addressLow}
+   * for example, when {@code indirectAddress} has value {@code 0x01FF}, then {@code addressHigh}
    * should be read from {@code 0x0200}. Instead, through this bus, it is read from {@code 0x0100}
    * (not changing the higher 8 bits).</p>
    *
@@ -778,7 +778,7 @@ class AddressingMode implements AddressingModeFunction {
 
   /**
    * <p>Reads two byte values at {@link Register#programCounter()} and
-   * {@link Register#programCounter()} {@code + 1}, interpreting them as 16-bit address.</p>
+   * {@link Register#programCounter()} {@code  + 1}, interpreting them as 16-bit address.</p>
    *
    * <p>In the process, the {@link Register#programCounter()} is incremented twice.</p>
    *
