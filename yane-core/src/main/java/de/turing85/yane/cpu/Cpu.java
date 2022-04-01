@@ -7,19 +7,19 @@ public final class Cpu {
   private static final int RESET_READ_ADDRESS = 0xFFFC;
   private static final int CYCLES_FOR_RESET = 8;
 
-  private final CpuBus bus;
+  private final Bus bus;
   private final Register register;
 
   private int cycles;
 
-  public Cpu(CpuBus bus, Clock clock, Register register, int cycles) {
+  public Cpu(Bus bus, Clock clock, Register register, int cycles) {
     this.bus = bus;
     clock.addListener(this::tick);
     this.register = register;
     this.cycles = cycles;
   }
 
-  public Cpu(CpuBus bus, Clock clock) {
+  public Cpu(Bus bus, Clock clock) {
     this(bus, clock, Register.of(), 0);
     reset();
   }

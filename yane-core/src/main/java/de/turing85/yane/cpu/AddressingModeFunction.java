@@ -4,7 +4,7 @@ import java.util.function.*;
 
 /**
  * <p>Represents a function that fetches the data from the {@link Register} and/or the{@link
- * CpuBus}.</p>
+ * Bus}.</p>
  *
  * <p>Normally, data is fetched from the bus. There are some instructions, however, that require
  * data from the register, possibly not hitting the bus at all (e.g. {@link Command#TAX}, which
@@ -17,7 +17,7 @@ import java.util.function.*;
  * execution of a command is then subsequently written back to the bus, then this is not represented
  * by this call.</p>
  */
-interface AddressingModeFunction extends BiFunction<Register, CpuBus, AddressingResult> {
+interface AddressingModeFunction extends BiFunction<Register, Bus, AddressingResult> {
 
   /**
    * Reads the necessary data from the register and/or bus.
@@ -29,7 +29,7 @@ interface AddressingModeFunction extends BiFunction<Register, CpuBus, Addressing
    *
    * @return the result of the fetch
    */
-  default AddressingResult fetch(Register register, CpuBus bus) {
+  default AddressingResult fetch(Register register, Bus bus) {
     return apply(register, bus);
   }
 }

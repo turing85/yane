@@ -2,10 +2,10 @@ package de.turing85.yane.cpu;
 
 /**
  * <p>Represents a function that operates on fetched data, possibly mutating the {@link Register}
- * and {@link CpuBus}.</p>
+ * and {@link Bus}.</p>
  *
  * <p>The data is represented as {@link AddressingResult}. This class also encapsulates the
- * {@link Register} and {@link CpuBus}. Mutation of the register is necessary to at least mutate the
+ * {@link Register} and {@link Bus}. Mutation of the register is necessary to at least mutate the
  * {@link Register#programCounter()}.</p>
  *
  * <p>The state changed introduced by the execution is reflected in the returned
@@ -17,7 +17,7 @@ interface CommandFunction {
    *
    * @param addressingResult
    *     the {@link AddressingResult}, representing the data on which the command operates
-   *     (including the {@link Register} and {@link CpuBus}).
+   *     (including the {@link Register} and {@link Bus}).
    *
    * @return the {@link CommandResult}, encapsulating the state after the command execution.
    */

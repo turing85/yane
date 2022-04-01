@@ -9,7 +9,7 @@ import lombok.*;
  *
  * <ul>
  *   <li>The {@link Register}-state after the command execution ({@link #register})
- *   <li>The {@link CpuBus}-state after the command execution ({@link #bus})
+ *   <li>The {@link Bus}-state after the command execution ({@link #bus})
  *   <li>The number of additional cycles needed by the {@link CommandFunction}-execution and the
  *   {@link AddressingModeFunction}-fetching ({@link #additionalCyclesNeeded})
  * </ul>
@@ -23,9 +23,9 @@ class CommandResult {
   Register register;
 
   /**
-   * The {@link CpuBus} used by the command.
+   * The {@link Bus} used by the command.
    */
-  CpuBus bus;
+  Bus bus;
 
   /**
    * The number of additional cycles needed by the {@link Command}.

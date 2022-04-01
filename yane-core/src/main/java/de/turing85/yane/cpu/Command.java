@@ -154,7 +154,7 @@ class Command implements CommandFunction {
         final int rawResult = value << 1;
         final int result = rawResult & 0xFF;
         final int address = addressingResult.address();
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         Register updatedRegister = storeValueDependingOnAddress(
             address,
             result,
@@ -433,7 +433,7 @@ class Command implements CommandFunction {
    */
   static final Command BRK = new Command(
       addressingResult -> {
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         final Register register = addressingResult.register()
             .setBreakFlag()
             .incrementProgramCounter();
@@ -753,8 +753,8 @@ class Command implements CommandFunction {
   static final Command DEC = new Command(
       addressingResult -> {
         final int valueDecremented = (addressingResult.value() - 1) & 0xFF;
-        final CpuBus bus = addressingResult.bus();
-        bus.write(valueDecremented, addressingResult.address());
+        final Bus bus = addressingResult.bus();
+        bus.write(addressingResult.address(), valueDecremented);
         return new CommandResult(
             addressingResult.register()
                 .negativeFlag(isNegative(valueDecremented))
@@ -881,8 +881,8 @@ class Command implements CommandFunction {
   static final Command INC = new Command(
       addressingResult -> {
         final int newValue = (addressingResult.value() + 1) & 0xFF;
-        final CpuBus bus = addressingResult.bus();
-        bus.write(newValue, addressingResult.address());
+        final Bus bus = addressingResult.bus();
+        bus.write(addressingResult.address(), newValue);
         return new CommandResult(
             addressingResult.register()
                 .negativeFlag(isNegative(newValue))
@@ -1423,7 +1423,7 @@ class Command implements CommandFunction {
    */
   static final Command RTI = new Command(
       addressingResult -> {
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         return new CommandResult(
             pullStatusFromStack(pullProgramCounterFromStack(addressingResult.register(), bus), bus)
                 .setUnusedFlag()
@@ -1595,9 +1595,9 @@ class Command implements CommandFunction {
    */
   static final Command STA = new Command(
       addressingResult -> {
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         final Register register = addressingResult.register();
-        bus.write(register.a(), addressingResult.address());
+        bus.write(addressingResult.address(), register.a());
         return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STA");
@@ -1623,9 +1623,9 @@ class Command implements CommandFunction {
    */
   static final Command STX = new Command(
       addressingResult -> {
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         final Register register = addressingResult.register();
-        bus.write(register.x(), addressingResult.address());
+        bus.write(addressingResult.address(), register.x());
         return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STX");
@@ -1651,9 +1651,9 @@ class Command implements CommandFunction {
    */
   static final Command STY = new Command(
       addressingResult -> {
-        final CpuBus bus = addressingResult.bus();
+        final Bus bus = addressingResult.bus();
         final Register register = addressingResult.register();
-        bus.write(register.y(), addressingResult.address());
+        bus.write(addressingResult.address(), register.y());
         return new CommandResult(register, bus, addressingResult.additionalCyclesNeeded());
       },
       "STY");
@@ -1934,9 +1934,9 @@ class Command implements CommandFunction {
    * @param condition
    *     branch-condition. The branching is only executed when {@code condition} is {@code true}
    * @param addressingResult
-   *     the {@link AddressingResult}, holding the {@link Register} and {@link CpuBus}
+   *     the {@link AddressingResult}, holding the {@link Register} and {@link Bus}
    *
-   * @return the {@link CommandResult}, holding the {@link Register}, {@link CpuBus} and the number
+   * @return the {@link CommandResult}, holding the {@link Register}, {@link Bus} and the number
    *     of additional cycles needed (including the additional cycles needed by the {@link
    *     AddressingMode}).
    */
@@ -1978,9 +1978,9 @@ class Command implements CommandFunction {
    *     the {@link Register}, holding the {@link Register#programCounter()} to push and the {@link
    *     Register#stackPointer()}
    * @param bus
-   *     the {@link CpuBus} to write to
+   *     the {@link Bus} to write to
    */
-  private static void pushProgramCounterToStack(Register register, CpuBus bus) {
+  private static void pushProgramCounterToStack(Register register, Bus bus) {
     pushToStack(register, (register.programCounter() >> 8), bus);
     pushToStack(register, register.programCounter() & 0xFF, bus);
   }
@@ -1995,11 +1995,11 @@ class Command implements CommandFunction {
    *     the {@link Register} to store the read {@link Register#programCounter()} in and holding the
    *     {@link Register#stackPointer()}
    * @param bus
-   *     the {@link CpuBus} to read from
+   *     the {@link Bus} to read from
    *
    * @return the {code register}, for method chaining
    */
-  private static Register pullProgramCounterFromStack(Register register, CpuBus bus) {
+  private static Register pullProgramCounterFromStack(Register register, Bus bus) {
     final int programCounterLow = pullFromStack(register, bus);
     final int programCounterHigh = pullFromStack(register, bus) << 8;
     return register.programCounter(programCounterLow | programCounterHigh);
@@ -2012,11 +2012,11 @@ class Command implements CommandFunction {
    *     the {@link Register}, holding the {@link Register#stackPointer()} to push and the {@link
    *     Register#stackPointer()}
    * @param bus
-   *     the {@link CpuBus} to write to
+   *     the {@link Bus} to write to
    *
    * @return the {code register} parameter, for method chaining
    */
-  private static Register pushStatusToStack(Register register, CpuBus bus) {
+  private static Register pushStatusToStack(Register register, Bus bus) {
     final Register updatedRegister = register.setUnusedFlag();
     pushToStack(register, updatedRegister.status(), bus);
     return updatedRegister;
@@ -2029,11 +2029,11 @@ class Command implements CommandFunction {
    *     the {@link Register} to store the read {@link Register#stackPointer()} in and holding the
    *     {@link Register#stackPointer()}
    * @param bus
-   *     the {@link CpuBus} to read from
+   *     the {@link Bus} to read from
    *
    * @return the {code register} parameter, for method chaining
    */
-  private static Register pullStatusFromStack(Register register, CpuBus bus) {
+  private static Register pullStatusFromStack(Register register, Bus bus) {
     return register
         .status(pullFromStack(register, bus))
         .unsetUnusedFlag()
@@ -2048,10 +2048,10 @@ class Command implements CommandFunction {
    * @param value
    *     the value to push
    * @param bus
-   *     the {@link CpuBus} to write to
+   *     the {@link Bus} to write to
    */
-  private static void pushToStack(Register register, int value, CpuBus bus) {
-    bus.write(value, register.getAndDecrementStackPointer());
+  private static void pushToStack(Register register, int value, Bus bus) {
+    bus.write(register.getAndDecrementStackPointer(), value);
   }
 
   /**
@@ -2060,11 +2060,11 @@ class Command implements CommandFunction {
    * @param register
    *     the {@link Register} holding the {@link Register#stackPointer()}
    * @param bus
-   *     the {@link CpuBus} to read from
+   *     the {@link Bus} to read from
    *
    * @return the value pulled from the stack
    */
-  static int pullFromStack(Register register, CpuBus bus) {
+  static int pullFromStack(Register register, Bus bus) {
     return bus.read(register.incrementAndGetStackPointer());
   }
 
@@ -2073,7 +2073,7 @@ class Command implements CommandFunction {
    *
    * <p>If {@code address} is {@link AddressingMode#IMPLIED_LOADED_ADDRESS}, then {@code value}
    * is written to {@link Register#a()}. Otherwise, the {@code value} is written to the {@link
-   * CpuBus} at address {@code address}.</p>
+   * Bus} at address {@code address}.</p>
    *
    * @param address
    *     address to write to
@@ -2082,7 +2082,7 @@ class Command implements CommandFunction {
    * @param register
    *     {@link Register} holding the {@link Register#a()}
    * @param bus
-   *     the {@link CpuBus} to write to
+   *     the {@link Bus} to write to
    *
    * @return the {code register} parameter, for method chaining
    */
@@ -2090,11 +2090,11 @@ class Command implements CommandFunction {
       int address,
       int value,
       Register register,
-      CpuBus bus) {
+      Bus bus) {
     if (address == IMPLIED_LOADED_ADDRESS) {
       return register.a(value);
     } else {
-      bus.write(value, address);
+      bus.write(address, value);
       return register;
     }
   }

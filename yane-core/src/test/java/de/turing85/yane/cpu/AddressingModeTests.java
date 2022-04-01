@@ -1,13 +1,12 @@
 package de.turing85.yane.cpu;
 
 import static com.google.common.truth.Truth.*;
-import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.*;
 
 @DisplayName("Addressing mode function tests")
 class AddressingModeTests {
-  private final CpuBus bus = mock(CpuBus.class);
+  private final Bus bus = new Bus();
   private final Register register = Register.of();
 
   @Nested
@@ -39,9 +38,9 @@ class AddressingModeTests {
     void loadsValueFromAbsoluteAddress() {
       // GIVEN
       final int expectedAddress = 0x8817;
-      when(bus.readAddressFrom(0)).thenReturn(expectedAddress);
+      bus.writeAddressToBus(0, expectedAddress);
       final int expectedValue = 0x13;
-      when(bus.read(expectedAddress)).thenReturn(expectedValue);
+      bus.write(expectedAddress, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.ABSOLUTE.fetch(register, bus);
@@ -64,10 +63,10 @@ class AddressingModeTests {
       // GIVEN
       register.x(0x07);
       final int address = 0x8812;
-      when(bus.readAddressFrom(0)).thenReturn(address);
+      bus.writeAddressToBus(0, address);
       final int addressPlusX = 0x8819;
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusX)).thenReturn(expectedValue);
+      bus.write(addressPlusX, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.ABSOLUTE_X.fetch(register, bus);
@@ -87,10 +86,10 @@ class AddressingModeTests {
       // GIVEN
       register.x(0x07);
       final int address = 0x88FF;
-      when(bus.readAddressFrom(0)).thenReturn(address);
+      bus.writeAddressToBus(0, address);
       final int addressPlusX = 0x8906;
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusX)).thenReturn(expectedValue);
+      bus.write(addressPlusX, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.ABSOLUTE_X.fetch(register, bus);
@@ -113,10 +112,10 @@ class AddressingModeTests {
       // GIVEN
       register.y(0x07);
       final int address = 0x8812;
-      when(bus.readAddressFrom(0)).thenReturn(address);
+      bus.writeAddressToBus(0, address);
       final int addressPlusY = 0x8819;
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
+      bus.write(addressPlusY, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.ABSOLUTE_Y.fetch(register, bus);
@@ -136,9 +135,9 @@ class AddressingModeTests {
       register.y(0x07);
       final int address = 0x88FF;
       final int addressPlusY = 0x8906;
-      when(bus.readAddressFrom(0)).thenReturn(address);
+      bus.writeAddressToBus(0, address);
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
+      bus.write(addressPlusY, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.ABSOLUTE_Y.fetch(register, bus);
@@ -160,7 +159,7 @@ class AddressingModeTests {
     void loadsTheByteAtProgramCounter() {
       // GIVEN
       final int expectedValue = 0x13;
-      when(bus.read(0)).thenReturn(expectedValue);
+      bus.write(0, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.IMMEDIATE.fetch(register, bus);
@@ -198,14 +197,11 @@ class AddressingModeTests {
     void loadsValueAtIndirectAddress() {
       // GIVEN
       final int indirect = 0x6951;
-      when(bus.readAddressFrom(0)).thenReturn(indirect);
-      final int addressLow = 0x12;
-      final int addressHigh = 0x88;
+      bus.writeAddressToBus(0, indirect);
       final int address = 0x8812;
-      when(bus.read(indirect)).thenReturn(addressLow);
-      when(bus.read(indirect + 1)).thenReturn(addressHigh);
+      bus.writeAddressToBus(indirect, address);
       final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
+      bus.write(address, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.INDIRECT.fetch(register, bus);
@@ -223,15 +219,13 @@ class AddressingModeTests {
     void reproducesBug() {
       // GIVEN
       final int indirect = 0x69FF;
-      when(bus.readAddressFrom(0)).thenReturn(indirect);
+      bus.writeAddressToBus(0, indirect);
       int nextIndirectDueToBug = 0x6900;
-      final int addressLow = 0x12;
-      final int addressHigh = 0x88;
       final int address = 0x8812;
-      when(bus.read(indirect)).thenReturn(addressLow);
-      when(bus.read(nextIndirectDueToBug)).thenReturn(addressHigh);
+      bus.write(indirect, address);
+      bus.write(nextIndirectDueToBug, address >> 8);
       final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
+      bus.write(address, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.INDIRECT.fetch(register, bus);
@@ -255,11 +249,11 @@ class AddressingModeTests {
       register.x(0x07);
       final int indirectZeroPageAddress = 0x0051;
       final int indirectZeroPageAddressPlusX = 0x0058;
-      when(bus.read(0)).thenReturn(indirectZeroPageAddress);
+      bus.write(0 ,indirectZeroPageAddress);
       final int zeroPageAddress = 0x0012;
-      when(bus.read(indirectZeroPageAddressPlusX)).thenReturn(zeroPageAddress);
+      bus.write(indirectZeroPageAddressPlusX, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddress)).thenReturn(expectedValue);
+      bus.write(zeroPageAddress, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.INDIRECT_ZERO_PAGE_X.fetch(register, bus);
@@ -279,11 +273,11 @@ class AddressingModeTests {
       register.x(0x07);
       final int indirectZeroPageAddress = 0x00FF;
       final int indirectZeroPAgeAddressPlusX = 0x0006;
-      when(bus.read(0)).thenReturn(indirectZeroPageAddress);
+      bus.write(0, indirectZeroPageAddress);
       final int zeroPageAddress = 0x0012;
-      when(bus.read(indirectZeroPAgeAddressPlusX)).thenReturn(zeroPageAddress);
+      bus.write(indirectZeroPAgeAddressPlusX, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddress)).thenReturn(expectedValue);
+      bus.write(zeroPageAddress, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.INDIRECT_ZERO_PAGE_X.fetch(register, bus);
@@ -305,13 +299,13 @@ class AddressingModeTests {
     void loadsValueAtIndirectAddressWithYOffset() {
       // GIVEN
       register.y(0x07);
-      final int indirectZeroPageAddress = 0x0051;
-      when(bus.read(0)).thenReturn(indirectZeroPageAddress);
-      final int zeroPageAddress = 0x0012;
-      final int zeroPageAddressPlusY = 0x0019;
-      when(bus.readAddressFromZeroPage(indirectZeroPageAddress)).thenReturn(zeroPageAddress);
+      final int indirect = 0x0051;
+      bus.write(0, indirect);
+      final int address = 0x0012;
+      final int addressPlusY = 0x0019;
+      bus.write(indirect, address);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusY)).thenReturn(expectedValue);
+      bus.write(addressPlusY, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
@@ -320,7 +314,7 @@ class AddressingModeTests {
       assertThat(register.programCounter())
           .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
-      assertThat(actual.address()).isEqualTo(zeroPageAddressPlusY);
+      assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
 
@@ -332,10 +326,11 @@ class AddressingModeTests {
       final int indirect = 0x00FF;
       final int address = 0xFFFF;
       final int addressPlusY = 0x0006;
-      when(bus.read(0)).thenReturn(indirect);
-      when(bus.readAddressFromZeroPage(indirect)).thenReturn(address);
+      bus.write(0, indirect);
+      bus.write(indirect, address);
+      bus.write((indirect + 1) & 0x00FF, address >> 8);
       final int expectedValue = 0x13;
-      when(bus.read(addressPlusY)).thenReturn(expectedValue);
+      bus.write(addressPlusY, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
@@ -357,10 +352,10 @@ class AddressingModeTests {
     void shouldReturnExpectedByteFromBus() {
       // GIVEN
       final int relativeAddress = 0x68;
-      when(bus.read(0)).thenReturn(relativeAddress);
+      bus.write(0, relativeAddress);
       final int address = (relativeAddress + 1) & 0xFFFF;
       final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
+      bus.write(address, expectedValue);
 
       // WHEN
       final AddressingResult actual = AddressingMode.RELATIVE.fetch(register, bus);
@@ -378,10 +373,10 @@ class AddressingModeTests {
     void handlesNegativeRelativeAddress() {
       // GIVEN
       final int relativeAddress = -37;
-      when(bus.read(0)).thenReturn(relativeAddress);
+      bus.write(0, relativeAddress);
       final int address = (relativeAddress + 1) & 0xFFFF;
       final int expectedValue = 0x13;
-      when(bus.read(address)).thenReturn(expectedValue);
+      bus.write(address, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.RELATIVE.fetch(register, bus);
@@ -403,9 +398,9 @@ class AddressingModeTests {
     void readsZeroPageAddress() {
       // GIVEN
       final int zeroPageAddress = 0x0012;
-      when(bus.read(0)).thenReturn(zeroPageAddress);
+      bus.write(0, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddress)).thenReturn(expectedValue);
+      bus.write(zeroPageAddress, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.ZERO_PAGE.fetch(register, bus);
@@ -429,9 +424,9 @@ class AddressingModeTests {
       register.x(0x07);
       final int zeroPageAddress = 0x12;
       final int zeroPageAddressPlusX = 0x0019;
-      when(bus.read(0)).thenReturn(zeroPageAddress);
+      bus.write(0, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
+      bus.write(zeroPageAddressPlusX, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.ZERO_PAGE_X.fetch(register, bus);
@@ -451,9 +446,9 @@ class AddressingModeTests {
       register.x(0x07);
       final int zeroPageAddress = 0xFF;
       final int zeroPageAddressPlusX = 0x06;
-      when(bus.read(0)).thenReturn(zeroPageAddress);
+      bus.write(0, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusX)).thenReturn(expectedValue);
+      bus.write(zeroPageAddressPlusX, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.ZERO_PAGE_X.fetch(register, bus);
@@ -477,9 +472,9 @@ class AddressingModeTests {
       register.y(0x07);
       final int zeroPAgeAddress = 0x0012;
       final int zeroPageAddressPlusY = 0x0019;
-      when(bus.read(0)).thenReturn(zeroPAgeAddress);
+      bus.write(0, zeroPAgeAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusY)).thenReturn(expectedValue);
+      bus.write(zeroPageAddressPlusY, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.ZERO_PAGE_Y.fetch(register, bus);
@@ -499,9 +494,9 @@ class AddressingModeTests {
       register.y(0x07);
       final int zeroPageAddress = 0xFF;
       final int zeroPageAddressPlusY = 0x06;
-      when(bus.read(0)).thenReturn(zeroPageAddress);
+      bus.write(0, zeroPageAddress);
       final int expectedValue = 0x13;
-      when(bus.read(zeroPageAddressPlusY)).thenReturn(expectedValue);
+      bus.write(zeroPageAddressPlusY, expectedValue);
 
       // WHEN
       AddressingResult actual = AddressingMode.ZERO_PAGE_Y.fetch(register, bus);

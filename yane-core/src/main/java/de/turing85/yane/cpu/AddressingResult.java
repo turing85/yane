@@ -28,7 +28,7 @@ public class AddressingResult {
   /**
    * The bus where {@link #address} and {@link #value} were read from.
    */
-  CpuBus bus;
+  Bus bus;
 
   /**
    * The address calculated by the {@link AddressingMode}.
@@ -59,7 +59,7 @@ public class AddressingResult {
    * @param value
    *     {@link #value}
    */
-  AddressingResult(Register register, CpuBus bus, int address, int value) {
+  AddressingResult(Register register, Bus bus, int address, int value) {
     this(register, bus, address, value, 0);
   }
 }

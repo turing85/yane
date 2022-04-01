@@ -75,7 +75,7 @@ import lombok.*;
  *     a program counter ({@link #programCounter}): a 16-bit value, interpreted as bus address.
  *     The CPU reads the next instruction from the bus address represented by this value.  Its
  *     initial value is {@code 0x0000}. Its initial value is determined by reading the reset vector
- *     from the {@link CpuBus}: {@code bus.read(}{@link #RESET_VECTOR}{@code ) | ((bus.read(}
+ *     from the {@link Bus}: {@code bus.read(}{@link #RESET_VECTOR}{@code ) | ((bus.read(}
  *     {@link #RESET_VECTOR}{@code + 1) << 8)}
  *   <li>
  *     a stack pointer ({@link #stackPointer}): a byte value, interpreted as bus address. Since
@@ -152,7 +152,7 @@ public interface Register {
   /**
    * <p>Reset vector.</p>
    *
-   * <p>When a {@link CpuBus} is passed along to the constructor or the {@link #reset(int)} method,
+   * <p>When a {@link Bus} is passed along to the constructor or the {@link #reset(int)} method,
    * {@link #programCounter} is initialized with the following value: {@code bus.read(RESET_VECTOR)
    * | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
    */
@@ -404,11 +404,11 @@ public interface Register {
    * ((bus.read(RESET_VECTOR + 1) << 8)}
    *
    * @param bus
-   *     the {@link CpuBus} to read from
+   *     the {@link Bus} to read from
    *
    * @return self, for method chaining
    */
-  default Register reset(CpuBus bus) {
+  default Register reset(Bus bus) {
     return reset(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
   }
 
@@ -839,9 +839,9 @@ public interface Register {
      * bus.read(RESET_VECTOR) | ((bus.read(RESET_VECTOR + 1) << 8)}</p>
      *
      * @param bus
-     *     the {@link CpuBus} to read the value for {@link #programCounter} from.
+     *     the {@link Bus} to read the value for {@link #programCounter} from.
      */
-    private Impl(CpuBus bus) {
+    private Impl(Bus bus) {
       this(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
     }
 
@@ -969,7 +969,7 @@ public interface Register {
      * {@inheritDoc}
      */
     @Override
-    public Impl reset(CpuBus bus) {
+    public Impl reset(Bus bus) {
       return reset(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
     }
 

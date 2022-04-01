@@ -8,7 +8,7 @@ package de.turing85.yane.cpu;
  * <p>Even though addresses and values are {@code int}s, only the lower 16 bit and 8 bits
  * respectively are used.</p>
  */
-public class CpuBus {
+public class Bus {
   /**
    * Bit-Mask to sanitize values (8-bit values) before writing to the bus.
    */
@@ -36,27 +36,27 @@ public class CpuBus {
    * <p>The address value is written in little endianness, i.e. the higher 8 bits are written
    * to {@code address}, the lower 8 bits are written to {@code address + 1}.</p>
    *
-   * @param addressValue
-   *     the 16-bit value to write
    * @param address
    *     the address to write to
+   * @param addressValue
+ *     the 16-bit value to write
    */
-  void writeAddressToBus(int addressValue, int address) {
-    write(addressValue >> 8, address);
-    write(addressValue, address + 1);
+  void writeAddressToBus(int address, int addressValue) {
+    write(address, addressValue);
+    write(address + 1, addressValue >> 8);
   }
 
   /**
    * Writes one byte value to an address.
    *
-   * @param value
-   *     the value to write
    * @param address
    *     the address to write to
+   * @param value
+ *     the value to write
    */
-  void write(int value, int address) {
-    final int sanitizedValue = value & VALUE_MASK;
+  void write(int address, int value) {
     final int sanitizedAddress = address & ADDRESS_MASK;
+    final int sanitizedValue = value & VALUE_MASK;
     memory[sanitizedAddress] = sanitizedValue;
   }
 
