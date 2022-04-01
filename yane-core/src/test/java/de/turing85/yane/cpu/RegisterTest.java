@@ -14,7 +14,7 @@ class RegisterTest {
     @DisplayName("no-args constructor initializes everything with the default values")
     void everythingShouldBeZeroWhenNoArgsConstructorIsCalled() {
       // WHEN
-      final Register register = new Register();
+      final Register register = Register.of();
 
       // THEN
       assertThat(register.a()).isEqualTo(0);
@@ -50,7 +50,7 @@ class RegisterTest {
       final boolean expectedNegative = true;
 
       // WHEN
-      final Register register = new Register(
+      final Register register = Register.of(
           expectedA,
           expectedX,
           expectedY,
@@ -88,8 +88,8 @@ class RegisterTest {
 
     @BeforeEach
     void setup() {
-      defaultRegister = new Register();
-      allSetRegister = new Register(
+      defaultRegister = Register.of();
+      allSetRegister = Register.of(
           1,
           2,
           3,

@@ -15,7 +15,7 @@ class CommandTest {
       final int a = 0x01;
       final int value = 0x02;
       final int sum = 0x03;
-      final Register register = new Register()
+      final Register register = Register.of()
           .programCounter(programCounter)
           .a(a)
           .unsetCarryFlag();
@@ -42,7 +42,7 @@ class CommandTest {
       final int a = 0xFF;
       final int value = 0x00;
       final int sum = 0x00;
-      final Register register = new Register()
+      final Register register = Register.of()
           .programCounter(programCounter)
           .a(a)
           .setCarryFlag();

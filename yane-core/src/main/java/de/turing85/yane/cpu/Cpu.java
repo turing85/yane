@@ -8,8 +8,8 @@ public final class Cpu {
   private static final int CYCLES_FOR_RESET = 8;
 
   private final CpuBus bus;
-
   private final Register register;
+
   private int cycles;
 
   public Cpu(CpuBus bus, Clock clock, Register register, int cycles) {
@@ -20,7 +20,7 @@ public final class Cpu {
   }
 
   public Cpu(CpuBus bus, Clock clock) {
-    this(bus, clock, new Register(), 0);
+    this(bus, clock, Register.of(), 0);
     reset();
   }
 

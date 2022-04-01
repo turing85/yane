@@ -1,14 +1,12 @@
 package de.turing85.yane.cpu;
 
-import de.turing85.yane.*;
-
 /**
  * <p>Represents a function that operates on fetched data, possibly mutating the {@link Register}
  * and {@link CpuBus}.</p>
  *
  * <p>The data is represented as {@link AddressingResult}. This class also encapsulates the
  * {@link Register} and {@link CpuBus}. Mutation of the register is necessary to at least mutate the
- * {@link Register#programCounter}.</p>
+ * {@link Register#programCounter()}.</p>
  *
  * <p>The state changed introduced by the execution is reflected in the returned
  * {@link CommandResult}.</p>

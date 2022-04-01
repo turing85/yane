@@ -3,13 +3,12 @@ package de.turing85.yane.cpu;
 import static com.google.common.truth.Truth.*;
 import static org.mockito.Mockito.*;
 
-import de.turing85.yane.*;
 import org.junit.jupiter.api.*;
 
 @DisplayName("Addressing mode function tests")
 class AddressingModeTests {
   private final CpuBus bus = mock(CpuBus.class);
-  private final Register register = new Register();
+  private final Register register = Register.of();
 
   @Nested
   @DisplayName("ACCUMULATOR addressing mode tests")
@@ -39,11 +38,8 @@ class AddressingModeTests {
     @DisplayName("loads value from absolute address")
     void loadsValueFromAbsoluteAddress() {
       // GIVEN
-      final int addressLow = 0x17;
-      final int addressHigh = 0x88;
       final int expectedAddress = 0x8817;
-      when(bus.read(0)).thenReturn(addressLow);
-      when(bus.read(1)).thenReturn(addressHigh);
+      when(bus.readAddressFrom(0)).thenReturn(expectedAddress);
       final int expectedValue = 0x13;
       when(bus.read(expectedAddress)).thenReturn(expectedValue);
 
@@ -51,7 +47,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.ABSOLUTE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ABSOLUTE.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ABSOLUTE.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(expectedAddress);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -66,11 +63,9 @@ class AddressingModeTests {
     void loadsValueFromAbsolutePlusX() {
       // GIVEN
       register.x(0x07);
-      final int addressLow = 0x12;
-      final int addressHigh = 0x88;
+      final int address = 0x8812;
+      when(bus.readAddressFrom(0)).thenReturn(address);
       final int addressPlusX = 0x8819;
-      when(bus.read(0)).thenReturn(addressLow);
-      when(bus.read(1)).thenReturn(addressHigh);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusX)).thenReturn(expectedValue);
 
@@ -78,7 +73,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.ABSOLUTE_X.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ABSOLUTE_X.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ABSOLUTE_X.bytesToRead());
       assertThat(actual.register()).isEqualTo(register);
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(addressPlusX);
@@ -90,11 +86,9 @@ class AddressingModeTests {
     void addsOneCycleWhenAddressPlusXIsOnNewPage() {
       // GIVEN
       register.x(0x07);
-      final int addressLow = 0xFF;
-      final int addressHigh = 0x88;
+      final int address = 0x88FF;
+      when(bus.readAddressFrom(0)).thenReturn(address);
       final int addressPlusX = 0x8906;
-      when(bus.read(0)).thenReturn(addressLow);
-      when(bus.read(1)).thenReturn(addressHigh);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusX)).thenReturn(expectedValue);
 
@@ -102,7 +96,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.ABSOLUTE_X.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ABSOLUTE_X.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ABSOLUTE_X.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(addressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
@@ -117,11 +112,9 @@ class AddressingModeTests {
     void loadsValueFromAbsolutePlusY() {
       // GIVEN
       register.y(0x07);
-      final int addressLow = 0x12;
-      final int addressHigh = 0x88;
+      final int address = 0x8812;
+      when(bus.readAddressFrom(0)).thenReturn(address);
       final int addressPlusY = 0x8819;
-      when(bus.read(0)).thenReturn(addressLow);
-      when(bus.read(1)).thenReturn(addressHigh);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
@@ -129,7 +122,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.ABSOLUTE_Y.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ABSOLUTE_Y.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ABSOLUTE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -140,11 +134,9 @@ class AddressingModeTests {
     void addsOneCycleWhenAddressPlusYIsOnNewPage() {
       // GIVEN
       register.y(0x07);
-      final int addressLow = 0xFF;
-      final int addressHigh = 0x88;
+      final int address = 0x88FF;
       final int addressPlusY = 0x8906;
-      when(bus.read(0)).thenReturn(addressLow);
-      when(bus.read(1)).thenReturn(addressHigh);
+      when(bus.readAddressFrom(0)).thenReturn(address);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
@@ -152,7 +144,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.ABSOLUTE_Y.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ABSOLUTE_Y.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ABSOLUTE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(addressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(1);
@@ -173,7 +166,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.IMMEDIATE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.IMMEDIATE.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.IMMEDIATE.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(0);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -203,11 +197,8 @@ class AddressingModeTests {
     @DisplayName("loads the value at indirect address")
     void loadsValueAtIndirectAddress() {
       // GIVEN
-      int indirectLow = 0x51;
-      int indirectHigh = 0x69;
-      when(bus.read(0)).thenReturn(indirectLow);
-      when(bus.read(1)).thenReturn(indirectHigh);
-      int indirect = 0x6951;
+      final int indirect = 0x6951;
+      when(bus.readAddressFrom(0)).thenReturn(indirect);
       final int addressLow = 0x12;
       final int addressHigh = 0x88;
       final int address = 0x8812;
@@ -220,7 +211,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.INDIRECT.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -230,11 +222,8 @@ class AddressingModeTests {
     @DisplayName("reproduces bug in 6502")
     void reproducesBug() {
       // GIVEN
-      int indirectLow = 0xFF;
-      int indirectHigh = 0x69;
-      when(bus.read(0)).thenReturn(indirectLow);
-      when(bus.read(1)).thenReturn(indirectHigh);
-      int indirect = 0x69ff;
+      final int indirect = 0x69FF;
+      when(bus.readAddressFrom(0)).thenReturn(indirect);
       int nextIndirectDueToBug = 0x6900;
       final int addressLow = 0x12;
       final int addressHigh = 0x88;
@@ -248,7 +237,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.INDIRECT.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -256,7 +246,7 @@ class AddressingModeTests {
   }
 
   @Nested
-  @DisplayName("INDIRECT_ZERO_PAGE_OFFSET_X addressing mode tests")
+  @DisplayName("INDIRECT_ZERO_PAGE_X addressing mode tests")
   class IndirectZeroPageOffsetXTests {
     @Test
     @DisplayName("loads the value at indirect address + X")
@@ -308,7 +298,7 @@ class AddressingModeTests {
   }
 
   @Nested
-  @DisplayName("INDIRECT_ZERO_PAGE_OFFSET_Y addressing mode tests")
+  @DisplayName("INDIRECT_ZERO_PAGE_Y addressing mode tests")
   class IndirectZeroPageOffsetYTests {
     @Test
     @DisplayName("loads the value at  indirect address + Y")
@@ -319,7 +309,7 @@ class AddressingModeTests {
       when(bus.read(0)).thenReturn(indirectZeroPageAddress);
       final int zeroPageAddress = 0x0012;
       final int zeroPageAddressPlusY = 0x0019;
-      when(bus.read(indirectZeroPageAddress)).thenReturn(zeroPageAddress);
+      when(bus.readAddressFromZeroPage(indirectZeroPageAddress)).thenReturn(zeroPageAddress);
       final int expectedValue = 0x13;
       when(bus.read(zeroPageAddressPlusY)).thenReturn(expectedValue);
 
@@ -327,7 +317,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.INDIRECT_ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
-      assertThat(register.programCounter()).isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
+      assertThat(register.programCounter())
+          .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -338,14 +329,11 @@ class AddressingModeTests {
     void addsOneCycleWhenAddressPlusYIsOnNewPage() {
       // GIVEN
       register.y(0x07);
-      final int indirect = 0xFF;
-      final int indirectPlusOne = 0x00;
-      final int addressLow = 0xFF;
-      final int addressHigh = 0xFF;
-      final int addressPlusY = 0x06;
+      final int indirect = 0x00FF;
+      final int address = 0xFFFF;
+      final int addressPlusY = 0x0006;
       when(bus.read(0)).thenReturn(indirect);
-      when(bus.read(indirect)).thenReturn(addressLow);
-      when(bus.read(indirectPlusOne)).thenReturn(addressHigh);
+      when(bus.readAddressFromZeroPage(indirect)).thenReturn(address);
       final int expectedValue = 0x13;
       when(bus.read(addressPlusY)).thenReturn(expectedValue);
 
@@ -378,7 +366,8 @@ class AddressingModeTests {
       final AddressingResult actual = AddressingMode.RELATIVE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.RELATIVE.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.RELATIVE.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -398,7 +387,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.RELATIVE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.RELATIVE.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.RELATIVE.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(address);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -421,7 +411,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.ZERO_PAGE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.ZERO_PAGE.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.ZERO_PAGE.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddress);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -446,7 +437,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_X.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_X.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -467,7 +459,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.ZERO_PAGE_X.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_X.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_X.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddressPlusX);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -492,7 +485,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
@@ -513,7 +507,8 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.ZERO_PAGE_Y.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter()).isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
+      assertThat(actual.register().programCounter())
+          .isEqualTo(AddressingMode.INDIRECT_ZERO_PAGE_Y.bytesToRead());
       assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(zeroPageAddressPlusY);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);

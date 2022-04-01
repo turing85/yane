@@ -326,12 +326,12 @@ class Instruction {
   int cycles;
 
   /**
-   * <p>The number of bytes read from the {@link Register#programCounter}.</p>
+   * <p>The number of bytes read from the {@link Register#programCounter()}.</p>
    *
-   * <p>This value also specifies how often {@link Register#programCounter} is incremented during
+   * <p>This value also specifies how often {@link Register#programCounter()} is incremented during
    * the execution of this instruction.</p>
    *
-   * @return The number of bytes read from the {@link Register#programCounter}
+   * @return The number of bytes read from the {@link Register#programCounter()}
    */
   public int bytesToRead() {
     return 1 + addressingMode().bytesToRead();
