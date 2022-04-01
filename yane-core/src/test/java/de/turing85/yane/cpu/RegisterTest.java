@@ -87,21 +87,8 @@ class RegisterTest {
   @Nested
   @DisplayName("Mutator tests")
   class MutatorTest {
-    private final Register defaultRegister = Register.of();
-    private final Register allSetRegister = Register.of(
-        1,
-        2,
-        3,
-        4,
-        5,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true,
-        true);
+    private final Register allFlagsUnsetRegister = Register.of().status(0x00);
+    private final Register allFlagsSetRegister = Register.of().status(0xFF);
 
     @Nested
     @DisplayName("Program counter tests")
@@ -112,7 +99,7 @@ class RegisterTest {
         // GIVEN
         final int initialProgramCounter = 1337;
         final int expectedProgramCounter = 1338;
-        final Register register = defaultRegister.programCounter(initialProgramCounter);
+        final Register register = allFlagsUnsetRegister.programCounter(initialProgramCounter);
 
         // WHEN
         final int actualProgramCounter = register.getAndIncrementProgramCounter();
@@ -129,7 +116,7 @@ class RegisterTest {
         final int expectedProgramCounter = 1337;
 
         // WHEN
-        Register actual = defaultRegister.programCounter(expectedProgramCounter);
+        Register actual = allFlagsUnsetRegister.programCounter(expectedProgramCounter);
 
         // THEN
         assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
@@ -143,7 +130,7 @@ class RegisterTest {
         final int expectedProgramCounter = 0xABCD;
 
         // WHEN
-        final Register actual = defaultRegister.programCounter(programCounter);
+        final Register actual = allFlagsUnsetRegister.programCounter(programCounter);
 
         // THEN
         assertThat(actual.programCounter()).isEqualTo(expectedProgramCounter);
@@ -156,7 +143,7 @@ class RegisterTest {
         final int initialProgramCounter = 0xFF;
         final int expectedIncrementedProgramCounter =
             (initialProgramCounter + 1) & Register.PROGRAM_COUNTER_MASK;
-        final Register register = defaultRegister.programCounter(initialProgramCounter);
+        final Register register = allFlagsUnsetRegister.programCounter(initialProgramCounter);
 
         // WHEN
         final Register actual = register.incrementProgramCounter();
@@ -172,7 +159,7 @@ class RegisterTest {
         final int initialProgramCounter = 0x00;
         final int expectedDecrementedProgramCounter =
             (initialProgramCounter - 1) & Register.PROGRAM_COUNTER_MASK;
-        final Register register = defaultRegister.programCounter(initialProgramCounter);
+        final Register register = allFlagsUnsetRegister.programCounter(initialProgramCounter);
 
         // WHEN
         final Register actual = register.decrementProgramCounter();
@@ -189,7 +176,7 @@ class RegisterTest {
       final int expectedA = 17;
 
       // WHEN
-      Register actual = defaultRegister.a(expectedA);
+      Register actual = allFlagsUnsetRegister.a(expectedA);
 
       // THEN
       assertThat(actual.a()).isEqualTo(expectedA);
@@ -202,7 +189,7 @@ class RegisterTest {
       final int expectedX = 17;
 
       // WHEN
-      Register actual = defaultRegister.x(expectedX);
+      Register actual = allFlagsUnsetRegister.x(expectedX);
 
       // THEN
       assertThat(actual.x()).isEqualTo(expectedX);
@@ -215,7 +202,7 @@ class RegisterTest {
       final int expectedY = 17;
 
       // WHEN
-      Register actual = defaultRegister.y(expectedY);
+      Register actual = allFlagsUnsetRegister.y(expectedY);
 
       // THEN
       assertThat(actual.y()).isEqualTo(expectedY);
@@ -225,39 +212,38 @@ class RegisterTest {
     @DisplayName("Stack Pointer tests")
     class StackPointerTests {
       @Test
-      @DisplayName("should return expected value when the stack pointer is mutated")
-      void shouldReturnExpectedValueWhenStackPointerIsMutated() {
+      @DisplayName("mutate stack pointer")
+      void mutateStackPointer() {
         // GIVEN
         final int stackPointer = 0x17;
 
         // WHEN
-        Register actual = defaultRegister.stackPointer(stackPointer);
+        Register actual = allFlagsUnsetRegister.stackPointer(stackPointer);
 
         // THEN
         assertThat(actual.stackPointer()).isEqualTo(stackPointer);
       }
 
       @Test
-      @DisplayName("should increment and get the stack pointer")
-      void shouldIncrementAndGetTheStackPointer() {
+      @DisplayName("increment and get the stack pointer")
+      void incrementAndGetTheStackPointer() {
         // GIVEN
-        final int initialStackPointer = 0x17;
-
-        final Register register = defaultRegister.stackPointer(initialStackPointer);
+        final int stackPointer = 0x17;
+        final Register register = allFlagsUnsetRegister.stackPointer(stackPointer);
 
         // WHEN
         final int actualStackPointer = register.incrementAndGetStackPointer();
 
         // THEN
-        assertThat(actualStackPointer).isEqualTo(initialStackPointer + 1);
+        assertThat(actualStackPointer).isEqualTo(stackPointer + 1);
       }
 
       @Test
-      @DisplayName("should get and decrement the stack pointer")
-      void shouldGetAndDecrementTheStackPointer() {
+      @DisplayName("get and decrement the stack pointer")
+      void getAndDecrementTheStackPointer() {
         // GIVEN
         final int initialStackPointer = 17;
-        final Register register = defaultRegister.stackPointer(initialStackPointer);
+        final Register register = allFlagsUnsetRegister.stackPointer(initialStackPointer);
 
         // WHEN
         final int actualStackPointer = register.getAndDecrementStackPointer();
@@ -268,48 +254,46 @@ class RegisterTest {
       }
 
       @Test
-      @DisplayName("should mask the stack pointer if it is too large")
-      void shouldGetMaskedStackPointer() {
+      @DisplayName("mask the stack pointer if it is too large")
+      void getMaskedStackPointer() {
         // GIVEN
-        final int stackPointer = 0xF_AB;
+        final int stackPointer = 0xFFAB;
         final int expectedStackPointer = 0x00AB;
 
         // WHEN
-        final Register actualRegister = defaultRegister.stackPointer(stackPointer);
+        final Register actual = allFlagsUnsetRegister.stackPointer(stackPointer);
 
         // THEN
-        assertThat(actualRegister.stackPointer())
-            .isEqualTo(expectedStackPointer);
+        assertThat(actual.stackPointer()).isEqualTo(expectedStackPointer);
       }
 
       @Test
-      @DisplayName("should wrap stack pointer during increment")
-      void shouldWrapStackPointerDuringIncrement() {
+      @DisplayName("wrap stack pointer during increment")
+      void wrapStackPointerDuringIncrement() {
         // GIVEN
         final int initialStackPointer = 0xFF;
         final int expectedIncrementedStackPointer = 0x00;
+        final Register register = allFlagsUnsetRegister.stackPointer(initialStackPointer);
 
         // WHEN
-        final int actual = defaultRegister.stackPointer(initialStackPointer)
-            .incrementAndGetStackPointer();
+        final int actual = register.incrementAndGetStackPointer();
 
         // THEN
         assertThat(actual).isEqualTo(expectedIncrementedStackPointer);
       }
 
       @Test
-      @DisplayName("should wrap stack pointer during decrement")
-      void shouldWrapStackPointerDuringDecrement() {
+      @DisplayName("wrap stack pointer during decrement")
+      void wrapStackPointerDuringDecrement() {
         // GIVEN
-        final int initialStackPointer = 0x00;
+        final Register register = allFlagsUnsetRegister.stackPointer(0);
         final int expectedDecrementedStackPointer = 0xFF;
-        final Register register = defaultRegister.stackPointer(initialStackPointer);
 
         // WHEN
         final int actual = register.getAndDecrementStackPointer();
 
         // THEN
-        assertThat(actual).isEqualTo(initialStackPointer);
+        assertThat(actual).isEqualTo(0);
         assertThat(register.stackPointer()).isEqualTo(expectedDecrementedStackPointer);
       }
     }
@@ -324,10 +308,10 @@ class RegisterTest {
         @DisplayName("Enable all flags")
         void enableAll() {
           // WHEN
-          final Register register = defaultRegister.status(0);
+          final Register register = allFlagsSetRegister.status(0x00);
           
           // THEN
-          assertThat(register.status()).isEqualTo(0);
+          assertThat(register.status()).isEqualTo(0x00);
           assertThat(register.isNegativeFlagSet()).isFalse();
           assertThat(register.isOverflowFlagSet()).isFalse();
           assertThat(register.isUnusedFlagSet()).isFalse();
@@ -342,7 +326,7 @@ class RegisterTest {
         @DisplayName("DisableAll")
         void disableAll() {
           // WHEN
-          final Register register = defaultRegister.status(0xFF);
+          final Register register = allFlagsUnsetRegister.status(0xFF);
 
           // THEN
           assertThat(register.status()).isEqualTo(0xFF);
@@ -364,7 +348,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setNegativeFlag();
+          final Register actual = allFlagsUnsetRegister.setNegativeFlag();
 
           // THEN
           assertThat(actual.isNegativeFlagSet()).isTrue();
@@ -375,7 +359,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetNegativeFlag();
+          final Register actual = allFlagsSetRegister.unsetNegativeFlag();
 
           // THEN
           assertThat(actual.isNegativeFlagSet()).isFalse();
@@ -390,7 +374,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setOverflowFlag();
+          final Register actual = allFlagsUnsetRegister.setOverflowFlag();
 
           // THEN
           assertThat(actual.isOverflowFlagSet()).isTrue();
@@ -401,7 +385,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetOverflowFlag();
+          final Register actual = allFlagsSetRegister.unsetOverflowFlag();
 
           // THEN
           assertThat(actual.isOverflowFlagSet()).isFalse();
@@ -416,7 +400,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setUnusedFlag();
+          final Register actual = allFlagsUnsetRegister.setUnusedFlag();
 
           // THEN
           assertThat(actual.isUnusedFlagSet()).isTrue();
@@ -427,7 +411,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetUnusedFlag();
+          final Register actual = allFlagsSetRegister.unsetUnusedFlag();
 
           // THEN
           assertThat(actual.isUnusedFlagSet()).isFalse();
@@ -442,7 +426,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setBreakFlag();
+          final Register actual = allFlagsUnsetRegister.setBreakFlag();
 
           // THEN
           assertThat(actual.isBreakFlagSet()).isTrue();
@@ -453,7 +437,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetBreakFlag();
+          final Register actual = allFlagsSetRegister.unsetBreakFlag();
 
           // THEN
           assertThat(actual.isBreakFlagSet()).isFalse();
@@ -468,7 +452,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setDecimalModeFlag();
+          final Register actual = allFlagsUnsetRegister.setDecimalModeFlag();
 
           // THEN
           assertThat(actual.isDecimalModeFlagSet()).isTrue();
@@ -479,7 +463,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetDecimalModeFlag();
+          final Register actual = allFlagsSetRegister.unsetDecimalModeFlag();
 
           // THEN
           assertThat(actual.isDecimalModeFlagSet()).isFalse();
@@ -494,7 +478,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setDisableIrqFlag();
+          final Register actual = allFlagsUnsetRegister.setDisableIrqFlag();
 
           // THEN
           assertThat(actual.isDisableIrqFlagSet()).isTrue();
@@ -505,7 +489,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetDisableIrqFlag();
+          final Register actual = allFlagsSetRegister.unsetDisableIrqFlag();
 
           // THEN
           assertThat(actual.isDisableIrqFlagSet()).isFalse();
@@ -520,7 +504,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setZeroFlag();
+          final Register actual = allFlagsUnsetRegister.setZeroFlag();
 
           // THEN
           assertThat(actual.isZeroFlagSet()).isTrue();
@@ -531,7 +515,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetZeroFlag();
+          final Register actual = allFlagsSetRegister.unsetZeroFlag();
 
           // THEN
           assertThat(actual.isZeroFlagSet()).isFalse();
@@ -546,7 +530,7 @@ class RegisterTest {
         @DisplayName("enable")
         void enable() {
           // WHEN
-          final Register actual = defaultRegister.setCarryFlag();
+          final Register actual = allFlagsUnsetRegister.setCarryFlag();
 
           // THEN
           assertThat(actual.isCarryFlagSet()).isTrue();
@@ -558,7 +542,7 @@ class RegisterTest {
         @DisplayName("disable")
         void disable() {
           // WHEN
-          final Register actual = allSetRegister.unsetCarryFlag();
+          final Register actual = allFlagsSetRegister.unsetCarryFlag();
 
           // THEN
           assertThat(actual.isCarryFlagSet()).isFalse();
