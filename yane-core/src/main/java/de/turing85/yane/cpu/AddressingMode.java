@@ -81,7 +81,7 @@ class AddressingMode implements AddressingModeFunction {
    * The actual implementation of the accessing mode.
    */
   @Delegate
-  AddressingModeFunction accessingModeFunction;
+  AddressingModeFunction addressingModeFunction;
 
   /**
    * The mnemonic of the addressing mode.
