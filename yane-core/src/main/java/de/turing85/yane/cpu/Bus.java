@@ -25,6 +25,19 @@ public class Bus {
   static final int ZERO_PAGE_ADDRESS_MASK = 0xFF;
 
   /**
+   * Start address for the stack. The 1st memory page is used as stack memory.
+   */
+  static final int STACK_START_ADDRESS = 0x0100;
+
+  /**
+   * <p>Stack pointer mask.</p>
+   *
+   * <p>Write to the stack are writes to the 1st memory page, thus the stack pointer must be a
+   * value between {@code 0} and {@code 255}.</p>
+   */
+  static final int STACK_OFFSET_MASK = 0xFF;
+
+  /**
    * An {@code int[]}, representing the 64 kilobyte (2^16 byte) of memory, addressable through the
    * 16-bit memory addresses.
    */
@@ -39,7 +52,7 @@ public class Bus {
    * @param address
    *     the address to write to
    * @param addressValue
- *     the 16-bit value to write
+   *     the 16-bit value to write
    */
   void writeAddressToBus(int address, int addressValue) {
     write(address, addressValue);
@@ -47,12 +60,12 @@ public class Bus {
   }
 
   /**
-   * Writes one byte value to an address.
+   * Writes an one byte value to an address.
    *
    * @param address
    *     the address to write to
    * @param value
- *     the value to write
+   *     the value to write
    */
   void write(int address, int value) {
     final int sanitizedAddress = address & ADDRESS_MASK;
@@ -100,7 +113,7 @@ public class Bus {
   }
 
   /**
-   * Reads one byte value from {@code address}.
+   * Reads an one byte value from {@code address}.
    *
    * @param address
    *     the address to read from
@@ -110,5 +123,34 @@ public class Bus {
   int read(int address) {
     final int sanitizedAddress = address & ADDRESS_MASK;
     return memory[sanitizedAddress];
+  }
+
+  /**
+   * <p>Writes one byte value to the stack memory.</p>
+   *
+   * @param stackOffset the stack offset to write to. The final address written to will be
+   *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
+   * @param value
+   *     the value to write.
+   */
+  void writeToStack(int stackOffset, int value) {
+    final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
+    final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
+    final int sanitizedValue = value & VALUE_MASK;
+    write(stackAddress, sanitizedValue);
+  }
+
+  /**
+   * <p>Reads one byte value to the stack memory.</p>
+   *
+   * @param stackOffset the stack offset to read from. The final address read from will be
+   *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
+   *
+   * @return the value read
+   */
+  int readFromStack(int stackOffset) {
+    final int sanitizedStackOffset = (stackOffset & STACK_OFFSET_MASK);
+    final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
+    return read(stackAddress);
   }
 }

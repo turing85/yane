@@ -220,4 +220,88 @@ class BusTests {
       assertThat(actualAddressValue).isEqualTo(expectedAddressValue);
     }
   }
+
+  @Nested
+  @DisplayName("Stack Read-Write tests")
+  class BusReadWriteTests {
+    @Test
+    @DisplayName("writes to correct location")
+    void writesToCorrectLocation() {
+      // GIVEN
+      final int stackOffset = 0x12;
+      final int addressWrittenTo = stackOffset | STACK_START_ADDRESS;
+      final int expectedValue = 0x13;
+
+      // WHEN
+      uut.writeToStack(stackOffset, expectedValue);
+
+      // THEN
+      assertThat(uut.read(addressWrittenTo)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    @DisplayName("write masks stack offset")
+    void writeMasksStackOffset() {
+      // GIVEN
+      final int stackOffset = 0xFF12;
+      final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
+      final int addressWrittenTo = sanitizedStackOffset | STACK_START_ADDRESS;
+      final int expectedValue = 0x13;
+
+      // WHEN
+      uut.writeToStack(stackOffset, expectedValue);
+
+      // THEN
+      assertThat(uut.read(addressWrittenTo)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    @DisplayName("write masks value")
+    void writeMasksValue() {
+      // GIVEN
+      final int stackOffset = 0x12;
+      final int addressWrittenTo = stackOffset | STACK_START_ADDRESS;
+      final int value = 0xFF13;
+      final int expectedValue = value & VALUE_MASK;
+
+      // WHEN
+      uut.writeToStack(stackOffset, value);
+
+      // THEN
+      assertThat(uut.read(addressWrittenTo)).isEqualTo(expectedValue);
+    }
+
+    @Test
+    @DisplayName("reads from correct location")
+    void readsFromCorrectLocation() {
+      // GIVEN
+      final int stackOffset = 0x00 ;
+      final int addressReadFrom = stackOffset | STACK_START_ADDRESS;
+      final int expectedValue = 0x13;
+      uut.write(addressReadFrom, expectedValue);
+
+      // WHEN
+      final int actualValue = uut.readFromStack(stackOffset);
+
+      // THEN
+      assertThat(actualValue).isEqualTo(expectedValue);
+    }
+
+    @Test
+    @DisplayName("read masks stack offset")
+    void readMasksStackOffset() {
+      // GIVEN
+      final int stackOffset = 0xFF12;
+      final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
+      final int addressReadFrom = sanitizedStackOffset | STACK_START_ADDRESS;
+      final int expectedValue = 0x13;
+      uut.write(addressReadFrom, expectedValue);
+
+      // WHEN
+      final int actualValue = uut.readFromStack(stackOffset);
+
+      // THEN
+      assertThat(actualValue).isEqualTo(expectedValue);
+    }
+  }
 }
