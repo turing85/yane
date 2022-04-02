@@ -5,7 +5,8 @@ import static de.turing85.yane.cpu.Bus.*;
 
 import org.junit.jupiter.api.*;
 
-class BusTest {
+@DisplayName("Bus tests")
+class BusTests {
   private final Bus uut = new Bus();
 
   @Nested

@@ -826,8 +826,8 @@ class Command implements CommandFunction {
   /**
    * <p>Exclusive-Or Command.</p>
    *
-   * <p>Exclusive-Ors {@link AddressingResult#value} with {@link Register#a()} and writes the result
-   * back to {@link Register#a(int)}.</p>
+   * <p>"Exclusive-Or"s {@link AddressingResult#value} with {@link Register#a()} and writes the
+   * result back to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1154,7 +1154,7 @@ class Command implements CommandFunction {
   /**
    * <p>Or with Accumulator command.</p>
    *
-   * <p>Ors {@link AddressingResult#value} with {@link Register#a()} and writes the result back to
+   * <p>"Or"s {@link AddressingResult#value} with {@link Register#a()} and writes the result back to
    * {@link Register#a(int)}.</p>
    *
    * <table border="1">
@@ -1942,12 +1942,13 @@ class Command implements CommandFunction {
    *     AddressingMode}).
    */
   private static CommandResult branchIf(boolean condition, AddressingResult addressingResult) {
-    final Register updatedRegister = addressingResult.register();
+    Register updatedRegister = addressingResult.register();
     int additionalCyclesNeeded = addressingResult.additionalCyclesNeeded();
     if (condition) {
       ++additionalCyclesNeeded;
-      final int programCounter = updatedRegister.programCounter();
       final int newProgramCounter = addressingResult.address();
+      final int programCounter = updatedRegister.programCounter();
+      updatedRegister = updatedRegister.programCounter(newProgramCounter);
       if (addressesAreOnDifferentPages(programCounter, newProgramCounter)) {
         ++additionalCyclesNeeded;
       }

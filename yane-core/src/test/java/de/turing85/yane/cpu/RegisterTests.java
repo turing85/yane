@@ -6,7 +6,7 @@ import static de.turing85.yane.cpu.Register.*;
 import org.junit.jupiter.api.*;
 
 @DisplayName("Register tests")
-class RegisterTest {
+class RegisterTests {
 
   @Nested
   @DisplayName("Constructor tests")
