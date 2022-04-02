@@ -12,17 +12,17 @@ public class Bus {
   /**
    * Bit-Mask to sanitize values (8-bit values) before writing to the bus.
    */
-  private static final int VALUE_MASK = 0xFF;
+  static final int VALUE_MASK = 0xFF;
 
   /**
    * Bit-mask to sanitize addresses (16-bit addresses) before writing to the bus.
    */
-  private static final int ADDRESS_MASK = 0xFFFF;
+  static final int ADDRESS_MASK = 0xFFFF;
 
   /**
    * Bit-mask to sanitize zero-page addresses (8-bit addresses) before writing to the bus.
    */
-  private static final int ZERO_PAGE_ADDRESS_MASK = 0xFF;
+  static final int ZERO_PAGE_ADDRESS_MASK = 0xFF;
 
   /**
    * An {@code int[]}, representing the 64 kilobyte (2^16 byte) of memory, addressable through the
@@ -93,7 +93,7 @@ public class Bus {
    */
   int readAddressFromZeroPage(int zeroPageAddress) {
     final int sanitizedZeroPageAddress = zeroPageAddress & ZERO_PAGE_ADDRESS_MASK;
-    final int addressValueLow = read(zeroPageAddress);
+    final int addressValueLow = read(sanitizedZeroPageAddress);
     final int addressValueHigh =
         read((sanitizedZeroPageAddress + 1) & ZERO_PAGE_ADDRESS_MASK);
     return addressValueLow | (addressValueHigh << 8);
