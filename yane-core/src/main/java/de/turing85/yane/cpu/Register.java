@@ -249,7 +249,7 @@ public interface Register {
    * @param a
    *     the new value for the accumulator
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #a(int)
    */
@@ -270,7 +270,7 @@ public interface Register {
    * @param x
    *     the new value for the X register
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #x()
    */
@@ -291,7 +291,7 @@ public interface Register {
    * @param y
    *     the new value for the Y register
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #y()
    */
@@ -314,7 +314,7 @@ public interface Register {
    * @param stackPointer
    *     the new value for the stack pointer
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #stackPointer()
    * @see #getAndDecrementStackPointer()
@@ -362,7 +362,7 @@ public interface Register {
    * @param programCounter
    *     the new value for the program counter
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #programCounter()
    * @see #getAndIncrementProgramCounter()
@@ -386,7 +386,7 @@ public interface Register {
   /**
    * Increments the value of the program counter.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #programCounter()
    * @see #programCounter(int)
@@ -398,7 +398,7 @@ public interface Register {
   /**
    * Decrements the value of the program counter.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    *
    * @see #programCounter()
    * @see #programCounter(int)
@@ -483,7 +483,7 @@ public interface Register {
    * @param status
    *     the status, as describe above
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   Register status(int status);
 
@@ -496,7 +496,7 @@ public interface Register {
    * @param bus
    *     the {@link Bus} to read from
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register reset(Bus bus) {
     return reset(bus.read(RESET_VECTOR) | (bus.read(RESET_VECTOR + 1) << 8));
@@ -508,7 +508,7 @@ public interface Register {
    * @param programCounterForReset
    *     the value for {@link #programCounter}
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   Register reset(int programCounterForReset);
 
@@ -518,7 +518,7 @@ public interface Register {
    * @param negativeFlag
    *     the new value for the {@code N} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register negativeFlag(boolean negativeFlag) {
     if (negativeFlag) {
@@ -533,7 +533,7 @@ public interface Register {
    * Sets the value of the {@code N} (negative) flag (7th bit of {@link #status()}) to {@code
    * true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setNegativeFlag() {
     return status(status() | NEGATIVE_MASK);
@@ -543,7 +543,7 @@ public interface Register {
    * Sets the value of the {@code N} (negative) flag (7th bit of {@link #status()}) to {@code
    * false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetNegativeFlag() {
     return status(status() & ~NEGATIVE_MASK);
@@ -564,7 +564,7 @@ public interface Register {
    * @param overflowFlag
    *     the new value for the {@code V} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register overflowFlag(boolean overflowFlag) {
     if (overflowFlag) {
@@ -579,7 +579,7 @@ public interface Register {
    * Sets the value of the {@code V} (negative) flag (6th bit of {@link #status()}) to {@code
    * true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setOverflowFlag() {
     return status(status() | OVERFLOW_MASK);
@@ -589,7 +589,7 @@ public interface Register {
    * Sets the value of the {@code V} (overflow) flag (6th bit of {@link #status()}) to {@code
    * false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetOverflowFlag() {
     return status(status() & ~OVERFLOW_MASK);
@@ -610,7 +610,7 @@ public interface Register {
    * @param unusedFlag
    *     the new value for the {@code U} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unusedFlag(boolean unusedFlag) {
     if (unusedFlag) {
@@ -624,7 +624,7 @@ public interface Register {
   /**
    * Sets the value of the {@code U} (unused) flag (5th bit of {@link #status()}) to {@code true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setUnusedFlag() {
     return status(status() | UNUSED_MASK);
@@ -633,7 +633,7 @@ public interface Register {
   /**
    * Sets the value of the {@code U} (unused) flag (5th bit of {@link #status()}) to {@code false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetUnusedFlag() {
     return status(status() & ~UNUSED_MASK);
@@ -654,7 +654,7 @@ public interface Register {
    * @param breakFlag
    *     the new value for the {@code B} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register breakFlag(boolean breakFlag) {
     if (breakFlag) {
@@ -668,7 +668,7 @@ public interface Register {
   /**
    * Sets the value of the {@code B} (break) flag (4th bit of {@link #status()}) to {@code true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setBreakFlag() {
     return status(status() | BREAK_MASK);
@@ -677,7 +677,7 @@ public interface Register {
   /**
    * Sets the value of the {@code B} (break) flag (4th bit of {@link #status()}) to {@code false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetBreakFlag() {
     return status(status() & ~BREAK_MASK);
@@ -698,7 +698,7 @@ public interface Register {
    * @param decimalModeFlag
    *     the new value for the {@code D} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register decimalModeFlag(boolean decimalModeFlag) {
     if (decimalModeFlag) {
@@ -713,7 +713,7 @@ public interface Register {
    * Sets the value of the {@code D} (decimal mode) flag (3rd bit of {@link #status()}) to {@code
    * true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setDecimalModeFlag() {
     return status(status() | DECIMAL_MASK);
@@ -723,7 +723,7 @@ public interface Register {
    * Sets the value of the {@code D} (decimal mode) flag (3rd bit of {@link #status()}) to {@code
    * false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetDecimalModeFlag() {
     return status(status() & ~DECIMAL_MASK);
@@ -744,7 +744,7 @@ public interface Register {
    * @param disableIrqFlag
    *     the new value for the {@code B} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register disableIrqFlag(boolean disableIrqFlag) {
     if (disableIrqFlag) {
@@ -759,7 +759,7 @@ public interface Register {
    * Sets the value of the {@code I} (disable IRQ) flag (2nd bit of {@link #status()}) to {@code
    * true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setDisableIrqFlag() {
     return status(status() | DISABLE_IRQ_MASK);
@@ -769,7 +769,7 @@ public interface Register {
    * Sets the value of the {@code I} (disable IRQ) flag (2nd bit of {@link #status()}) to {@code
    * false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetDisableIrqFlag() {
     return status(status() & ~DISABLE_IRQ_MASK);
@@ -790,7 +790,7 @@ public interface Register {
    * @param zeroFlag
    *     the new value for the {@code Z} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register zeroFlag(boolean zeroFlag) {
     if (zeroFlag) {
@@ -804,7 +804,7 @@ public interface Register {
   /**
    * Sets the value of the {@code Z} (zero) flag (1st bit of {@link #status()}) to {@code true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setZeroFlag() {
     return status(status() | ZERO_MASK);
@@ -813,7 +813,7 @@ public interface Register {
   /**
    * Sets the value of the {@code Z} (zero) flag (1st bit of {@link #status()}) to {@code false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetZeroFlag() {
     return status(status() & ~ZERO_MASK);
@@ -834,7 +834,7 @@ public interface Register {
    * @param carryFlag
    *     the new value for the {@code C} flag
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register carryFlag(boolean carryFlag) {
     if (carryFlag) {
@@ -848,7 +848,7 @@ public interface Register {
   /**
    * Sets the value of the {@code C} (carry) flag (0th bit of {@link #status()}) to {@code true}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register setCarryFlag() {
     return status(status() | CARRY_MASK);
@@ -857,7 +857,7 @@ public interface Register {
   /**
    * Sets the value of the {@code C} (carry) flag (0th bit of {@link #status()}) to {@code false}.
    *
-   * @return self, for method chaining
+   * @return {@code this}, for method chaining
    */
   default Register unsetCarryFlag() {
     return status(status() & ~CARRY_MASK);
