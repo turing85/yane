@@ -38,7 +38,7 @@ class AddressingModeTests {
     void loadsValueFromAbsoluteAddress() {
       // GIVEN
       final int expectedAddress = 0x8817;
-      bus.writeAddressToBus(0, expectedAddress);
+      bus.writeAddressTo(0, expectedAddress);
       final int expectedValue = 0x13;
       bus.write(expectedAddress, expectedValue);
 
@@ -63,7 +63,7 @@ class AddressingModeTests {
       // GIVEN
       register.x(0x07);
       final int address = 0x8812;
-      bus.writeAddressToBus(0, address);
+      bus.writeAddressTo(0, address);
       final int addressPlusX = 0x8819;
       final int expectedValue = 0x13;
       bus.write(addressPlusX, expectedValue);
@@ -86,7 +86,7 @@ class AddressingModeTests {
       // GIVEN
       register.x(0x07);
       final int address = 0x88FF;
-      bus.writeAddressToBus(0, address);
+      bus.writeAddressTo(0, address);
       final int addressPlusX = 0x8906;
       final int expectedValue = 0x13;
       bus.write(addressPlusX, expectedValue);
@@ -112,7 +112,7 @@ class AddressingModeTests {
       // GIVEN
       register.y(0x07);
       final int address = 0x8812;
-      bus.writeAddressToBus(0, address);
+      bus.writeAddressTo(0, address);
       final int addressPlusY = 0x8819;
       final int expectedValue = 0x13;
       bus.write(addressPlusY, expectedValue);
@@ -135,7 +135,7 @@ class AddressingModeTests {
       register.y(0x07);
       final int address = 0x88FF;
       final int addressPlusY = 0x8906;
-      bus.writeAddressToBus(0, address);
+      bus.writeAddressTo(0, address);
       final int expectedValue = 0x13;
       bus.write(addressPlusY, expectedValue);
 
@@ -197,9 +197,9 @@ class AddressingModeTests {
     void loadsValueAtIndirectAddress() {
       // GIVEN
       final int indirect = 0x6951;
-      bus.writeAddressToBus(0, indirect);
+      bus.writeAddressTo(0, indirect);
       final int address = 0x8812;
-      bus.writeAddressToBus(indirect, address);
+      bus.writeAddressTo(indirect, address);
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
 
@@ -219,7 +219,7 @@ class AddressingModeTests {
     void reproducesBug() {
       // GIVEN
       final int indirect = 0x69FF;
-      bus.writeAddressToBus(0, indirect);
+      bus.writeAddressTo(0, indirect);
       int nextIndirectDueToBug = 0x6900;
       final int address = 0x8812;
       bus.write(indirect, address);

@@ -3,7 +3,7 @@ package de.turing85.yane.cpu;
 /**
  * <p>The bus used to read and write values.</p>
  *
- * <p>Addressing is done in the 16-bit domain. Each address holds one byte value.</p>
+ * <p>Addressing is done in the 16-bit domain. Each address holds a one byte value.</p>
  *
  * <p>Even though addresses and values are {@code int}s, only the lower 16 bit and 8 bits
  * respectively are used.</p>
@@ -44,6 +44,34 @@ public class Bus {
   private final int[] memory = new int[ADDRESS_MASK + 1];
 
   /**
+   * Writes a one byte value to an address.
+   *
+   * @param address
+   *     the address to write to
+   * @param value
+   *     the value to write
+   */
+  Bus write(int address, int value) {
+    final int sanitizedAddress = address & ADDRESS_MASK;
+    final int sanitizedValue = value & VALUE_MASK;
+    memory[sanitizedAddress] = sanitizedValue;
+    return this;
+  }
+
+  /**
+   * Reads a one byte value from {@code address}.
+   *
+   * @param address
+   *     the address to read from
+   *
+   * @return the value read
+   */
+  int read(int address) {
+    final int sanitizedAddress = address & ADDRESS_MASK;
+    return memory[sanitizedAddress];
+  }
+
+  /**
    * <p>Writes an address value (16 bit) to the bus.</p>
    *
    * <p>The address value is written in little endianness, i.e. the higher 8 bits are written
@@ -54,30 +82,16 @@ public class Bus {
    * @param addressValue
    *     the 16-bit value to write
    */
-  void writeAddressToBus(int address, int addressValue) {
-    write(address, addressValue);
-    write(address + 1, addressValue >> 8);
-  }
-
-  /**
-   * Writes an one byte value to an address.
-   *
-   * @param address
-   *     the address to write to
-   * @param value
-   *     the value to write
-   */
-  void write(int address, int value) {
-    final int sanitizedAddress = address & ADDRESS_MASK;
-    final int sanitizedValue = value & VALUE_MASK;
-    memory[sanitizedAddress] = sanitizedValue;
+  Bus writeAddressTo(int address, int addressValue) {
+    return write(address + 1, addressValue >> 8)
+        .write(address, addressValue & VALUE_MASK);
   }
 
   /**
    * <p>Reads an address value (16 bit) from the bus.</p>
    *
-   * <p>The address value is read in little endianness, i.e. the higher 8 bits are read
-   * from {@code address}, the lower 8 bits are read from {@code address + 1}.</p>
+   * <p>The address value is read in little endianness, i.e. the lower 8 bits are read
+   * from {@code address}, the higher 8 bits are read from {@code address - 1}.</p>
    *
    * @param address
    *     the address to read from
@@ -113,35 +127,22 @@ public class Bus {
   }
 
   /**
-   * Reads an one byte value from {@code address}.
-   *
-   * @param address
-   *     the address to read from
-   *
-   * @return the value read
-   */
-  int read(int address) {
-    final int sanitizedAddress = address & ADDRESS_MASK;
-    return memory[sanitizedAddress];
-  }
-
-  /**
-   * <p>Writes one byte value to the stack memory.</p>
+   * <p>Writes a one byte value to the stack memory.</p>
    *
    * @param stackOffset the stack offset to write to. The final address written to will be
    *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
    * @param value
    *     the value to write.
    */
-  void writeToStack(int stackOffset, int value) {
+  Bus writeToStack(int stackOffset, int value) {
     final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
     final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
     final int sanitizedValue = value & VALUE_MASK;
-    write(stackAddress, sanitizedValue);
+    return write(stackAddress, sanitizedValue);
   }
 
   /**
-   * <p>Reads one byte value to the stack memory.</p>
+   * <p>Reads a one byte value to the stack memory.</p>
    *
    * @param stackOffset the stack offset to read from. The final address read from will be
    *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
@@ -152,5 +153,43 @@ public class Bus {
     final int sanitizedStackOffset = (stackOffset & STACK_OFFSET_MASK);
     final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
     return read(stackAddress);
+  }
+
+  /**
+   * <p>Writes an address value (16 bit) to the stack.</p>
+   *
+   * <p>The address value is written in little endianness, i.e. the higher 8 bits are written
+   * to {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}, the lower 8 bits are written to
+   * {@code ((stackOffset - 1) & 0xFF) | }{@link #STACK_START_ADDRESS}.</p>
+   *
+   * @param stackOffset the stack offset to write to
+   * @param addressValue
+   *     the 16-bit value to write
+   */
+  Bus writeAddressToStack(int stackOffset, int addressValue) {
+    final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
+    final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
+    final int sanitizedNextStackOffset = (sanitizedStackOffset - 1) & STACK_OFFSET_MASK;
+    final int nextStackAddress = sanitizedNextStackOffset | STACK_START_ADDRESS;
+    return write(stackAddress, addressValue >> 8)
+        .write(nextStackAddress, addressValue & VALUE_MASK);
+  }
+
+  /**
+   * <p>Read an address value (16 bit) to the stack.</p>
+   *
+   * <p>The address value is read in little endianness, i.e. the ower 8 bits are read
+   * to {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}, the higher 8 bits are read from
+   * {@code ((stackOffset + 1) & 0xFF) | }{@link #STACK_START_ADDRESS}.</p>
+   *
+   * @param stackOffset the stack offset to read from
+   * @return  the 16-bit value read
+   */
+  int readAddressFromStack(int stackOffset) {
+    final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
+    final int stackAddress = sanitizedStackOffset | STACK_START_ADDRESS;
+    final int sanitizedPreviousStackOffset = (stackOffset + 1) & STACK_OFFSET_MASK;
+    final int previousStackAddress = sanitizedPreviousStackOffset | STACK_START_ADDRESS;
+    return read(stackAddress) | (read(previousStackAddress) << 8);
   }
 }
