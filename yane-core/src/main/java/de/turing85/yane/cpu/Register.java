@@ -319,6 +319,7 @@ public interface Register {
    * @see #stackPointer()
    * @see #getAndDecrementStackPointer()
    * @see #incrementAndGetStackPointer()
+   * @see #incrementStackPointer()
    */
   Register stackPointer(int stackPointer);
 
@@ -330,6 +331,7 @@ public interface Register {
    * @see #stackPointer()
    * @see #stackPointer(int)
    * @see #incrementAndGetStackPointer()
+   * @see #incrementStackPointer()
    */
   int getAndDecrementStackPointer();
 
@@ -343,6 +345,21 @@ public interface Register {
    * @see #getAndDecrementStackPointer()
    */
   int incrementAndGetStackPointer();
+
+  /**
+   * Increments the value of the stack pointer by one.
+   *
+   * @return {@code this}, for method chaining
+   *
+   * @see #stackPointer()
+   * @see #stackPointer(int)
+   * @see #getAndDecrementStackPointer()
+   * @see #incrementStackPointer()
+   */
+  default Register incrementStackPointer() {
+    incrementAndGetStackPointer();
+    return this;
+  }
 
   /**
    * Gets the value of the program counter.

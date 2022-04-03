@@ -62,9 +62,9 @@ class AddressingModeTests {
     void loadsValueFromAbsolutePlusX() {
       // GIVEN
       register.x(0x07);
-      final int address = 0x8812;
+      final int address = 0x0012;
       bus.writeAddressTo(0, address);
-      final int addressPlusX = 0x8819;
+      final int addressPlusX = 0x0019;
       final int expectedValue = 0x13;
       bus.write(addressPlusX, expectedValue);
 
@@ -111,9 +111,9 @@ class AddressingModeTests {
     void loadsValueFromAbsolutePlusY() {
       // GIVEN
       register.y(0x07);
-      final int address = 0x8812;
+      final int address = 0x0012;
       bus.writeAddressTo(0, address);
-      final int addressPlusY = 0x8819;
+      final int addressPlusY = 0x0019;
       final int expectedValue = 0x13;
       bus.write(addressPlusY, expectedValue);
 
@@ -198,7 +198,7 @@ class AddressingModeTests {
       // GIVEN
       final int indirect = 0x6951;
       bus.writeAddressTo(0, indirect);
-      final int address = 0x8812;
+      final int address = 0x0012;
       bus.writeAddressTo(indirect, address);
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
@@ -221,7 +221,7 @@ class AddressingModeTests {
       final int indirect = 0x69FF;
       bus.writeAddressTo(0, indirect);
       int nextIndirectDueToBug = 0x6900;
-      final int address = 0x8812;
+      final int address = 0x0012;
       bus.write(indirect, address);
       bus.write(nextIndirectDueToBug, address >> 8);
       final int expectedValue = 0x13;

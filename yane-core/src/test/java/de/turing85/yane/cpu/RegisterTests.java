@@ -94,8 +94,8 @@ class RegisterTests {
     @DisplayName("Program counter tests")
     class ProgramCounterTests {
       @Test
-      @DisplayName("Get and increment the program counter")
-      void getAndIncrementTheProgramCounter() {
+      @DisplayName("Get and increment")
+      void getAndIncrement() {
         // GIVEN
         final int initialProgramCounter = 1337;
         final int expectedProgramCounter = 1338;
@@ -110,8 +110,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("Set program counter")
-      void setProgramCounter() {
+      @DisplayName("Set")
+      void set() {
         // GIVEN
         final int expectedProgramCounter = 1337;
 
@@ -123,8 +123,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("Mask program counter if it is too large")
-      void maskedProgramCounter() {
+      @DisplayName("Mask")
+      void mask() {
         // GIVEN
         final int programCounter = 0xF_ABCD;
         final int expectedProgramCounter = 0xABCD;
@@ -137,8 +137,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("Wrap program counter during increment")
-      void wrapProgramCounterDuringIncrement() {
+      @DisplayName("Wrap during increment")
+      void wrapDuringIncrement() {
         // GIVEN
         final int initialProgramCounter = 0xFF;
         final int expectedIncrementedProgramCounter =
@@ -153,8 +153,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("Wrap program counter during decrement")
-      void wrapProgramCounterDuringDecrement() {
+      @DisplayName("Wrap during decrement")
+      void wrapDuringDecrement() {
         // GIVEN
         final int initialProgramCounter = 0x00;
         final int expectedDecrementedProgramCounter =
@@ -170,7 +170,7 @@ class RegisterTests {
     }
 
     @Test
-    @DisplayName("mutate accumulator")
+    @DisplayName("set accumulator")
     void setAccumulator() {
       // GIVEN
       final int expectedA = 17;
@@ -183,8 +183,8 @@ class RegisterTests {
     }
 
     @Test
-    @DisplayName("mutate register X")
-    void mutateX() {
+    @DisplayName("set register X")
+    void setX() {
       // GIVEN
       final int expectedX = 17;
 
@@ -196,8 +196,8 @@ class RegisterTests {
     }
 
     @Test
-    @DisplayName("mutate register Y")
-    void mutateY() {
+    @DisplayName("ser register Y")
+    void setY() {
       // GIVEN
       final int expectedY = 17;
 
@@ -212,8 +212,8 @@ class RegisterTests {
     @DisplayName("Stack Pointer tests")
     class StackPointerTests {
       @Test
-      @DisplayName("mutate stack pointer")
-      void mutateStackPointer() {
+      @DisplayName("set")
+      void set() {
         // GIVEN
         final int stackPointer = 0x17;
 
@@ -225,8 +225,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("increment and get the stack pointer")
-      void incrementAndGetTheStackPointer() {
+      @DisplayName("increment and get")
+      void incrementAndGet() {
         // GIVEN
         final int stackPointer = 0x17;
         final Register register = allFlagsUnsetRegister.stackPointer(stackPointer);
@@ -239,8 +239,22 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("get and decrement the stack pointer")
-      void getAndDecrementTheStackPointer() {
+      @DisplayName("increment")
+      void increment() {
+        // GIVEN
+        final int stackPointer = 0x17;
+        final Register register = allFlagsUnsetRegister.stackPointer(stackPointer);
+
+        // WHEN
+        final Register actual = register.incrementStackPointer();
+
+        // THEN
+        assertThat(actual.stackPointer()).isEqualTo(stackPointer + 1);
+      }
+
+      @Test
+      @DisplayName("get and decrement")
+      void getAndDecremen() {
         // GIVEN
         final int initialStackPointer = 17;
         final Register register = allFlagsUnsetRegister.stackPointer(initialStackPointer);
@@ -254,11 +268,11 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("mask the stack pointer if it is too large")
-      void getMaskedStackPointer() {
+      @DisplayName("mask")
+      void mask() {
         // GIVEN
-        final int stackPointer = 0xFFAB;
-        final int expectedStackPointer = 0x00AB;
+        final int stackPointer = 0xFF17;
+        final int expectedStackPointer = 0x0017;
 
         // WHEN
         final Register actual = allFlagsUnsetRegister.stackPointer(stackPointer);
@@ -268,8 +282,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("wrap stack pointer during increment")
-      void wrapStackPointerDuringIncrement() {
+      @DisplayName("wrap during increment")
+      void wrapDuringIncrement() {
         // GIVEN
         final int initialStackPointer = 0xFF;
         final int expectedIncrementedStackPointer = 0x00;
@@ -283,8 +297,8 @@ class RegisterTests {
       }
 
       @Test
-      @DisplayName("wrap stack pointer during decrement")
-      void wrapStackPointerDuringDecrement() {
+      @DisplayName("wrap during decrement")
+      void wrapDuringDecrement() {
         // GIVEN
         final Register register = allFlagsUnsetRegister.stackPointer(0);
         final int expectedDecrementedStackPointer = 0xFF;
