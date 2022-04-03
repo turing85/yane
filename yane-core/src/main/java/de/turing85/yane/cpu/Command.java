@@ -2067,6 +2067,8 @@ class Command implements CommandFunction {
    *     the value to push
    * @param bus
    *     the {@link Bus} to write to
+   *
+   * @return the {@code register} parameter, for method chaining
    */
   private static Register pushToStack(Register register, int value, Bus bus) {
     bus.writeToStack(register.getAndDecrementStackPointer(), value);
@@ -2126,7 +2128,7 @@ class Command implements CommandFunction {
    * @param transferTarget
    *     Setter of a {@link Register}
    *
-   * @return the {code register} parameter, for method chaining
+   * @return the {@code register} parameter, for method chaining
    */
   private static Register transfer(
       IntSupplier transferSource,

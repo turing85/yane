@@ -50,6 +50,8 @@ public class Bus {
    *     the address to write to
    * @param value
    *     the value to write
+   *
+   * @return {@code this}, for method chaining
    */
   Bus write(int address, int value) {
     final int sanitizedAddress = address & ADDRESS_MASK;
@@ -81,6 +83,8 @@ public class Bus {
    *     the address to write to
    * @param addressValue
    *     the 16-bit value to write
+   *
+   * @return {@code this}, for method chaining
    */
   Bus writeAddressTo(int address, int addressValue) {
     return write(address + 1, addressValue >> 8)
@@ -134,6 +138,8 @@ public class Bus {
    *     0xFF) | }{@link #STACK_START_ADDRESS}
    * @param value
    *     the value to write.
+   *
+   * @return {@code this}, for method chaining
    */
   Bus writeToStack(int stackOffset, int value) {
     final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
@@ -168,6 +174,8 @@ public class Bus {
    *     the stack offset to write to
    * @param addressValue
    *     the 16-bit value to write
+   *
+   * @return {@code this}, for method chaining
    */
   Bus writeAddressToStack(int stackOffset, int addressValue) {
     final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;
