@@ -189,7 +189,7 @@ public class Bus {
   /**
    * <p>Read an address value (16 bit) to the stack.</p>
    *
-   * <p>The address value is read in little endianness, i.e. the ower 8 bits are read
+   * <p>The address value is read in little endianness, i.e. the lower 8 bits are read
    * to {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}, the higher 8 bits are read from
    * {@code ((stackOffset + 1) & 0xFF) | }{@link #STACK_START_ADDRESS}.</p>
    *
