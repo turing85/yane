@@ -1218,13 +1218,13 @@ class Command implements CommandFunction {
    * @see #PLA
    */
   static final Command PHA = new Command(
-      addressingResult -> {
-        pushToStack(
-            addressingResult.register(),
-            addressingResult.register().a(),
-            addressingResult.bus());
-        return new CommandResult(addressingResult.register(), addressingResult.bus(), 0);
-      },
+      addressingResult -> new CommandResult(
+          pushToStack(
+              addressingResult.register(),
+              addressingResult.register().a(),
+              addressingResult.bus()),
+          addressingResult.bus(),
+          0),
       "PHA");
 
   /**
@@ -2018,7 +2018,8 @@ class Command implements CommandFunction {
    * @return the {code register}, for method chaining
    */
   private static Register pullProgramCounterFromStack(Register register, Bus bus) {
-    return register.programCounter(bus.readAddressFromStack(register.incrementAndGetStackPointer()))
+    return register
+        .programCounter(bus.readAddressFromStack(register.incrementAndGetStackPointer()))
         .incrementStackPointer();
   }
 
@@ -2067,8 +2068,9 @@ class Command implements CommandFunction {
    * @param bus
    *     the {@link Bus} to write to
    */
-  private static void pushToStack(Register register, int value, Bus bus) {
+  private static Register pushToStack(Register register, int value, Bus bus) {
     bus.writeToStack(register.getAndDecrementStackPointer(), value);
+    return register;
   }
 
   /**
