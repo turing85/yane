@@ -2899,7 +2899,7 @@ class CommandTests {
       assertThat(actualRegister.isZeroFlagSet()).isTrue();
     }
   }
-  
+
   @Nested
   @DisplayName("UNKNOWN command tests")
   class UnknownTests {

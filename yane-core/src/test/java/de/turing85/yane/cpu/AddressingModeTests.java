@@ -249,7 +249,7 @@ class AddressingModeTests {
       register.x(0x07);
       final int indirectZeroPageAddress = 0x0051;
       final int indirectZeroPageAddressPlusX = 0x0058;
-      bus.write(0 ,indirectZeroPageAddress);
+      bus.write(0, indirectZeroPageAddress);
       final int zeroPageAddress = 0x0012;
       bus.write(indirectZeroPageAddressPlusX, zeroPageAddress);
       final int expectedValue = 0x13;

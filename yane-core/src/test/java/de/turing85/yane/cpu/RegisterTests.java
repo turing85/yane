@@ -323,7 +323,7 @@ class RegisterTests {
         void enableAll() {
           // WHEN
           final Register register = allFlagsSetRegister.status(0x00);
-          
+
           // THEN
           assertThat(register.status()).isEqualTo(0x00);
           assertThat(register.isNegativeFlagSet()).isFalse();
@@ -354,7 +354,7 @@ class RegisterTests {
           assertThat(register.isCarryFlagSet()).isTrue();
         }
       }
-      
+
       @Nested
       @DisplayName("Negative Flag tests")
       class NegativeFlagTests {

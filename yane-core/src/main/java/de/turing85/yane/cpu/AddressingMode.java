@@ -176,9 +176,8 @@ class AddressingMode implements AddressingModeFunction {
    * at addresses {@link Register#programCounter()} ({@code addressLow}) and {@link
    * Register#programCounter()}{@code  + 1} ({@code addressHigh}). Then a 16-bit address is
    * constructed by using {@code addressLow} as the 8 lower bits and {@code addressHigh} as the 8
-   * higher bits. We will call this address {@code address}. Finally, the value of
-   * {@link Register#x()} is added to {@code address}. We will call this address
-   * {@code addressPlusX}.</p>
+   * higher bits. We will call this address {@code address}. Finally, the value of {@link
+   * Register#x()} is added to {@code address}. We will call this address {@code addressPlusX}.</p>
    *
    * <p>The {@code value} of is then read from the {@code addressPlusX}.</p>
    *

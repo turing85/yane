@@ -129,8 +129,9 @@ public class Bus {
   /**
    * <p>Writes a one byte value to the stack memory.</p>
    *
-   * @param stackOffset the stack offset to write to. The final address written to will be
-   *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
+   * @param stackOffset
+   *     the stack offset to write to. The final address written to will be {@code (stackOffset &
+   *     0xFF) | }{@link #STACK_START_ADDRESS}
    * @param value
    *     the value to write.
    */
@@ -144,8 +145,9 @@ public class Bus {
   /**
    * <p>Reads a one byte value to the stack memory.</p>
    *
-   * @param stackOffset the stack offset to read from. The final address read from will be
-   *     {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}
+   * @param stackOffset
+   *     the stack offset to read from. The final address read from will be {@code (stackOffset &
+   *     0xFF) | }{@link #STACK_START_ADDRESS}
    *
    * @return the value read
    */
@@ -162,7 +164,8 @@ public class Bus {
    * to {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}, the lower 8 bits are written to
    * {@code ((stackOffset - 1) & 0xFF) | }{@link #STACK_START_ADDRESS}.</p>
    *
-   * @param stackOffset the stack offset to write to
+   * @param stackOffset
+   *     the stack offset to write to
    * @param addressValue
    *     the 16-bit value to write
    */
@@ -182,8 +185,10 @@ public class Bus {
    * to {@code (stackOffset & 0xFF) | }{@link #STACK_START_ADDRESS}, the higher 8 bits are read from
    * {@code ((stackOffset + 1) & 0xFF) | }{@link #STACK_START_ADDRESS}.</p>
    *
-   * @param stackOffset the stack offset to read from
-   * @return  the 16-bit value read
+   * @param stackOffset
+   *     the stack offset to read from
+   *
+   * @return the 16-bit value read
    */
   int readAddressFromStack(int stackOffset) {
     final int sanitizedStackOffset = stackOffset & STACK_OFFSET_MASK;

@@ -980,8 +980,8 @@ class Command implements CommandFunction {
   /**
    * <p>Jump and Save Return Address Command.</p>
    *
-   * <p>Pushes {@link Register#programCounter()}{@code + 2} to the stack (higher 8 bits first, lower
-   * 8 bits second). Then writes {@link Register#programCounter()} to {@code bus(} {@link
+   * <p>Pushes {@link Register#programCounter()}{@code + 2} to the stack (higher 8 bits first,
+   * lower 8 bits second). Then writes {@link Register#programCounter()} to {@code bus(} {@link
    * Register#programCounter()}{@code  + 1)} (lower 8 bits) and {@code bus(} {@link
    * Register#programCounter()}{@code  + 2)}(higher 8 bits). Finally, sets {@link
    * Register#programCounter()} to {@link AddressingResult#address}</p>
@@ -1165,8 +1165,8 @@ class Command implements CommandFunction {
   /**
    * <p>Or with Accumulator command.</p>
    *
-   * <p>"Or"s {@link AddressingResult#value} with {@link Register#a()} and writes the result back to
-   * {@link Register#a(int)}.</p>
+   * <p>"Or"s {@link AddressingResult#value} with {@link Register#a()} and writes the result back
+   * to {@link Register#a(int)}.</p>
    *
    * <table border="1">
    *   <caption>Flag change summary</caption>
@@ -1801,10 +1801,10 @@ class Command implements CommandFunction {
    */
   static final Command TXS = new Command(
       addressingResult ->
-        new CommandResult(
-            transfer(addressingResult.register()::x, addressingResult.register()::stackPointer),
-            addressingResult.bus(),
-            0),
+          new CommandResult(
+              transfer(addressingResult.register()::x, addressingResult.register()::stackPointer),
+              addressingResult.bus(),
+              0),
       "TXS");
 
   /**
@@ -1951,8 +1951,8 @@ class Command implements CommandFunction {
    * @param addressingResult
    *     the {@link AddressingResult}, holding the {@link Register} and {@link Bus}
    *
-   * @return the {@link CommandResult}, holding the {@link Register}, {@link Bus} and the number
-   *     of additional cycles needed (including the additional cycles needed by the {@link
+   * @return the {@link CommandResult}, holding the {@link Register}, {@link Bus} and the number of
+   *     additional cycles needed (including the additional cycles needed by the {@link
    *     AddressingMode}).
    */
   private static CommandResult branchIf(boolean condition, AddressingResult addressingResult) {
