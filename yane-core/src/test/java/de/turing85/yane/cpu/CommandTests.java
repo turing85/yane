@@ -2899,4 +2899,21 @@ class CommandTests {
       assertThat(actualRegister.isZeroFlagSet()).isTrue();
     }
   }
+  
+  @Nested
+  @DisplayName("UNKNOWN command tests")
+  class UnknownTests {
+    @Test
+    @DisplayName("does nothing")
+    void doesNothing() {
+      // GIVEN
+      final AddressingResult addressingResult = AddressingMode.UNKNOWN.fetch(null, null);
+
+      // WHEN
+      CommandResult actual = Command.UNKNOWN.execute(addressingResult);
+
+      // THEN
+      assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
+    }
+  }
 }
