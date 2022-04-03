@@ -1,5 +1,7 @@
 package de.turing85.yane.cpu;
 
+import static de.turing85.yane.cpu.Bus.*;
+
 import lombok.*;
 import lombok.experimental.Delegate;
 
@@ -218,7 +220,7 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode ABSOLUTE_X = new AddressingMode(
       (register, bus) -> {
         final int address = readAddressAtProgramPointer(register, bus);
-        final int addressPlusX = (address + register.x()) & 0xFFFF;
+        final int addressPlusX = (address + register.x()) & ADDRESS_MASK;
         return new AddressingResult(
             register,
             bus,
@@ -278,7 +280,7 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode ABSOLUTE_Y = new AddressingMode(
       (register, bus) -> {
         final int address = readAddressAtProgramPointer(register, bus);
-        final int addressPlusY = (address + register.y()) & 0xFFFF;
+        final int addressPlusY = (address + register.y()) & ADDRESS_MASK;
         return new AddressingResult(
             register,
             bus,
@@ -405,12 +407,12 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode INDIRECT = new AddressingMode(
       (register, bus) -> {
         final int indirectAddress = readAddressAtProgramPointer(register, bus);
-        final int addressLow = indirectAddress & 0xFF;
+        final int addressLow = indirectAddress & ADDRESS_MASK;
         final int nextIndirectAddress = lowestByteIsAllOnes(addressLow)
             // Hardware bug in 6502
             ? indirectAddress & 0xFF00
             // normal behaviour
-            : (indirectAddress + 1) & 0xFFFF;
+            : (indirectAddress + 1) & ADDRESS_MASK;
         final int address =
             bus.read(indirectAddress) | (bus.read(nextIndirectAddress) << 8);
         return new AddressingResult(register, bus, address, bus.read(address));
@@ -473,7 +475,7 @@ class AddressingMode implements AddressingModeFunction {
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
         final int zeroPageIndirectAddressPlusX =
-            (zeroPageIndirectAddress + register.x()) & 0xFF;
+            (zeroPageIndirectAddress + register.x()) & ZERO_PAGE_ADDRESS_MASK;
         final int address = bus.read(zeroPageIndirectAddressPlusX);
         return new AddressingResult(register, bus, address, bus.read(address));
       },
@@ -543,7 +545,7 @@ class AddressingMode implements AddressingModeFunction {
       (register, bus) -> {
         final int zeroPageIndirectAddress = bus.read(register.getAndIncrementProgramCounter());
         final int address = bus.readAddressFromZeroPage(zeroPageIndirectAddress);
-        final int addressPlusY = (address + register.y()) & 0xFFFF;
+        final int addressPlusY = (address + register.y()) & ADDRESS_MASK;
         return new AddressingResult(
             register,
             bus,
@@ -608,7 +610,7 @@ class AddressingMode implements AddressingModeFunction {
         } else {
           signedRelativeAddress = relativeAddress;
         }
-        final int address = (register.programCounter() + signedRelativeAddress) & 0xFFFF;
+        final int address = (register.programCounter() + signedRelativeAddress) & ADDRESS_MASK;
         return new AddressingResult(register, bus, address, bus.read(address));
       },
       "rel",
@@ -696,7 +698,7 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode ZERO_PAGE_X = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
-        final int zeroPageAddressPlusX = (zeroPageAddress + register.x()) & 0x00FF;
+        final int zeroPageAddressPlusX = (zeroPageAddress + register.x()) & ZERO_PAGE_ADDRESS_MASK;
         return new AddressingResult(
             register,
             bus,
@@ -746,7 +748,7 @@ class AddressingMode implements AddressingModeFunction {
   static final AddressingMode ZERO_PAGE_Y = new AddressingMode(
       (register, bus) -> {
         final int zeroPageAddress = bus.read(register.getAndIncrementProgramCounter());
-        final int zeroPageAddressPlusY = (zeroPageAddress + register.y()) & 0x00FF;
+        final int zeroPageAddressPlusY = (zeroPageAddress + register.y()) & ZERO_PAGE_ADDRESS_MASK;
         return new AddressingResult(
             register,
             bus,

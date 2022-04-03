@@ -1506,7 +1506,7 @@ class Command implements CommandFunction {
       addressingResult -> {
         final Register register = addressingResult.register();
         final int a = register.a();
-        final int value = addressingResult.value() ^ 0x00FF;
+        final int value = addressingResult.value() ^ VALUE_MASK;
         final int rawResult = a + value + (register.isCarryFlagSet() ? 1 : 0);
         final int result = rawResult & VALUE_MASK;
         return new CommandResult(

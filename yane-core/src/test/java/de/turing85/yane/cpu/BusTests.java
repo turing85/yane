@@ -16,7 +16,7 @@ class BusTests {
     @DisplayName("write and then read")
     void writeRead() {
       // GIVEN
-      final int address = 0x8817;
+      final int address = 0x0012;
       final int expectedValue = 0x13;
 
       // WHEN
@@ -30,7 +30,7 @@ class BusTests {
     @DisplayName("write masks address")
     void writeMasksAddress() {
       // GIVEN
-      final int address = 0xFFFF_8817;
+      final int address = 0xFFFF_0012;
       final int sanitizedAddress = address & ADDRESS_MASK;
       final int expectedValue = 0x13;
 
@@ -45,7 +45,7 @@ class BusTests {
     @DisplayName("read masks address")
     void readMasksAddress() {
       // GIVEN
-      final int address = 0xFFFF_8817;
+      final int address = 0xFFFF_0012;
       final int sanitizedAddress = address & ADDRESS_MASK;
       final int expectedValue = 0x13;
 
@@ -60,7 +60,7 @@ class BusTests {
     @DisplayName("write masks value")
     void writeMasksValue() {
       // GIVEN
-      final int address = 0x8817;
+      final int address = 0x0012;
       final int value = 0x113;
       final int expectedValue = value & VALUE_MASK;
 
@@ -79,7 +79,7 @@ class BusTests {
     @DisplayName("write and then read")
     void writeRead() {
       // GIVEN
-      final int address = 0x8817;
+      final int address = 0x0012;
       final int expectedAddressValue = 0x1337;
       final int expectedAddressValueLow = expectedAddressValue & 0xFF;
       final int expectedAddressValueHigh = expectedAddressValue >> 8;
@@ -99,7 +99,7 @@ class BusTests {
     @DisplayName("write masks addresses")
     void writeMasksAddresses() {
       // GIVEN
-      final int address = 0xFFFF_8817;
+      final int address = 0xFFFF_0012;
       final int sanitizedAddress = address & ADDRESS_MASK;
       final int expectedAddressValue = 0x1337;
       final int expectedAddressValueLow = expectedAddressValue & 0xFF;
@@ -117,7 +117,7 @@ class BusTests {
     @DisplayName("read masks addresses")
     void readMasksAddresses() {
       // GIVEN
-      final int address = 0xFFFF_8817;
+      final int address = 0xFFFF_0012;
       final int sanitizedAddress = address & ADDRESS_MASK;
       final int expectedAddressValue = 0x1337;
       final int expectedAddressValueLow = expectedAddressValue & 0xFF;
@@ -138,7 +138,7 @@ class BusTests {
     @DisplayName("write masks address value")
     void writeMasksAddressValue() {
       // GIVEN
-      final int address = 0x8817;
+      final int address = 0x0012;
       final int addressValue = 0xFFFF_1337;
       final int expectedAddressValue = addressValue & ADDRESS_MASK;
       final int expectedAddressValueLow = expectedAddressValue & 0xFF;

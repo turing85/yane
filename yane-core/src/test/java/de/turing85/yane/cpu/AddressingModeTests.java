@@ -1,6 +1,7 @@
 package de.turing85.yane.cpu;
 
 import static com.google.common.truth.Truth.*;
+import static de.turing85.yane.cpu.Bus.*;
 
 import org.junit.jupiter.api.*;
 
@@ -324,7 +325,7 @@ class AddressingModeTests {
       // GIVEN
       register.y(0x07);
       final int indirect = 0x00FF;
-      final int address = 0xFFFF;
+      final int address = ADDRESS_MASK;
       final int addressPlusY = 0x0006;
       bus.write(0, indirect);
       bus.write(indirect, address);
@@ -353,7 +354,7 @@ class AddressingModeTests {
       // GIVEN
       final int relativeAddress = 0x68;
       bus.write(0, relativeAddress);
-      final int address = (relativeAddress + 1) & 0xFFFF;
+      final int address = (relativeAddress + 1) & ADDRESS_MASK;
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
 
@@ -374,7 +375,7 @@ class AddressingModeTests {
       // GIVEN
       final int relativeAddress = -37;
       bus.write(0, relativeAddress);
-      final int address = (relativeAddress + 1) & 0xFFFF;
+      final int address = (relativeAddress + 1) & ADDRESS_MASK;
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
 
