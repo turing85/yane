@@ -606,11 +606,11 @@ class AddressingMode implements AddressingModeFunction {
         final int relativeAddress = bus.read(register.getAndIncrementProgramCounter());
         final int signedRelativeAddress;
         if ((relativeAddress & 0x80) > 0) {
-          signedRelativeAddress = relativeAddress | 0xFF00;
+          signedRelativeAddress = relativeAddress | 0xFFFF_FF00;
         } else {
           signedRelativeAddress = relativeAddress;
         }
-        final int address = (register.programCounter() + signedRelativeAddress) & ADDRESS_MASK;
+        final int address = (register.programCounter() - 1 + signedRelativeAddress) & ADDRESS_MASK;
         return new AddressingResult(register, bus, address, bus.read(address));
       },
       "rel",

@@ -354,7 +354,7 @@ class AddressingModeTests {
       // GIVEN
       final int relativeAddress = 0x68;
       bus.write(0, relativeAddress);
-      final int address = (relativeAddress + 1) & ADDRESS_MASK;
+      final int address = relativeAddress & ADDRESS_MASK;
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
 
@@ -373,9 +373,11 @@ class AddressingModeTests {
     @DisplayName("handlesNegativeAddress")
     void handlesNegativeRelativeAddress() {
       // GIVEN
+      final int startAddress = 1337;
       final int relativeAddress = -37;
-      bus.write(0, relativeAddress);
-      final int address = (relativeAddress + 1) & ADDRESS_MASK;
+      final int address = startAddress + relativeAddress;
+      bus.write(startAddress, relativeAddress);
+      final Register register = Register.of().programCounter(startAddress);
       final int expectedValue = 0x13;
       bus.write(address, expectedValue);
 
@@ -383,10 +385,10 @@ class AddressingModeTests {
       AddressingResult actual = AddressingMode.RELATIVE.fetch(register, bus);
 
       // THEN
-      assertThat(actual.register().programCounter())
-          .isEqualTo(AddressingMode.RELATIVE.bytesToRead());
-      assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.address()).isEqualTo(address);
+      assertThat(actual.register().programCounter())
+          .isEqualTo(1338);
+      assertThat(actual.value()).isEqualTo(expectedValue);
       assertThat(actual.additionalCyclesNeeded()).isEqualTo(0);
     }
   }
