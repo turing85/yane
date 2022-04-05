@@ -1,17 +1,31 @@
 package de.turing85.yane;
 
-import java.util.*;
+import java.util.ArrayList;
 
+/**
+ * A clock that, calls all {@link #registered} callbacks.
+ */
 public class Clock {
-  private long globalTime = 0;
+  /**
+   * <p>The registered callbacks, represented by {@link Runnable}s.</p>
+   *
+   * <p>Those are executed when {@link #tick()} is called</p>
+   */
   private final ArrayList<Runnable> registered = new ArrayList<>();
 
-  public void addListener(Runnable registree) {
-    this.registered.add(registree);
+  /**
+   * Adds a {@link Runnable} to the {@link #registered} callbacks.
+   *
+   * @param callback the callback to register
+   */
+  public void addListener(Runnable callback) {
+    this.registered.add(callback);
   }
 
+  /**
+   * Tick once, call all callbacks from {@link #registered}.
+   */
   public void tick() {
-    ++globalTime;
     registered.forEach(Runnable::run);
   }
 }

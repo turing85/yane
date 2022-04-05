@@ -33,6 +33,15 @@ class Instruction {
    */
   static final Map<String, Set<Instruction>> INSTRUCTIONS_BY_MNEMONIC;
 
+  /**
+   * <p>Gets an instruction by its op-code.</p>
+   *
+   * <p>Since op-codes are generally represented by byte values, the return-value of this method is
+   * only meaningful, if parameter {@code opCode} is between {@code 0} and {@code 255}.</p>
+   *
+   * @param opCode the op-code to search for
+   * @return the instruction that is represented by the op-code.
+   */
   static Instruction getByOpCode(int opCode) {
     return INSTRUCTIONS_BY_OPCODE.get(opCode);
   }
@@ -362,6 +371,17 @@ class Instruction {
     return "%s %s".formatted(command().mnemonic(), addressingMode().mnemonic());
   }
 
+  /**
+   * <p>Executes the current instruction.</p>
+   *
+   * <p>When this method is called, all parts of the instruction are immediately executed. Changes
+   * are reflected in parameters {@code register} and {@code bus}. In other words: this method does
+   * not allow for cycle-precise emulation.</p>
+   *
+   * @param register the {@link Register} to read and write values from/to
+   * @param bus the {@link Bus} to read and write values from/to
+   * @return the number of cycles that this instruction needs to complete
+   */
   public int execute(Register register, Bus bus) {
     return command.execute(addressingMode.fetch(register, bus)).additionalCyclesNeeded() + cycles();
   }
