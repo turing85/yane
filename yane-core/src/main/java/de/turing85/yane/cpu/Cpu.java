@@ -23,6 +23,7 @@ public final class Cpu {
   /**
    * The {@link Bus} that this CPU is connected to.
    */
+  @Getter(AccessLevel.PACKAGE)
   private final Bus bus;
 
   /**
