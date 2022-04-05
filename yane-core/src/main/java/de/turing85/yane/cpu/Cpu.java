@@ -5,13 +5,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 /**
- * The CPU, executiong {@link Instruction}s, modifying its {@link Register} and reading and writing
+ * The CPU, executing {@link Instruction}s, modifying its {@link Register} and reading and writing
  * from a {@link Bus}.
  */
 public final class Cpu {
   /**
    * The two values from this and the successor (i.e. +1) are read when the CPU is set/initialized
-   * to determin the initial value of the {@link Register#programCounter(int)}.
+   * to determine the initial value of the {@link Register#programCounter(int)}.
    */
   static final int RESET_READ_ADDRESS = 0xFFFC;
 

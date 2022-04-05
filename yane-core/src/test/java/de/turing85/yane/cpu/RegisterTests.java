@@ -254,7 +254,7 @@ class RegisterTests {
 
       @Test
       @DisplayName("get and decrement")
-      void getAndDecremen() {
+      void getAndDecrement() {
         // GIVEN
         final int initialStackPointer = 17;
         final Register register = allFlagsUnsetRegister.stackPointer(initialStackPointer);
