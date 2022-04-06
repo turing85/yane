@@ -3,7 +3,7 @@ package de.turing85.yane;
 import java.util.ArrayList;
 
 /**
- * A clock that, calls all {@link #registered} callbacks.
+ * A clock that calls all {@link #registered} callbacks on each {@link #tick()}.
  */
 public class Clock {
   /**
